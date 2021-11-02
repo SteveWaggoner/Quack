@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/qucore-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/qucore-sources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/qucoreJS.iml" filepath="$PROJECT_DIR$/.idea/modules/qucoreJS.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/qucoreJS-build.iml" filepath="$PROJECT_DIR$/.idea/modules/qucoreJS-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/qucoreJVM.iml" filepath="$PROJECT_DIR$/.idea/modules/qucoreJVM.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/qucoreJVM-build.iml" filepath="$PROJECT_DIR$/.idea/modules/qucoreJVM-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/root.iml" filepath="$PROJECT_DIR$/.idea/modules/root.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/root-build.iml" filepath="$PROJECT_DIR$/.idea/modules/root-build.iml" />
+    </modules>
+  </component>
+</project>
