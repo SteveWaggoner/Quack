@@ -1,13 +1,13 @@
 ThisBuild / scalaVersion := "2.13.1"
 
 lazy val root = project.in(file(".")).
-  aggregate(ancore.js, ancore.jvm).
+  aggregate(qucore.js, qucore.jvm).
   settings(
     publish := {},
     publishLocal := {},
   )
 
-lazy val ancore = crossProject(JSPlatform, JVMPlatform).in(file(".")).
+lazy val qucore = crossProject(JSPlatform, JVMPlatform).in(file(".")).
   settings(
     name := "qucore",
     version := "0.1-SNAPSHOT",

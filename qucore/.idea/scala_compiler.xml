@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <option name="incrementalityType" value="SBT" />
-    <profile name="sbt 1" modules="qucore,root,ancoreJVM" />
-    <profile name="sbt 2" modules="ancoreJS">
+    <profile name="sbt 1" modules="qucore,root,qucoreJVM" />
+    <profile name="sbt 2" modules="qucoreJS">
       <plugins>
         <plugin path="C:\Users\admin\AppData\Local\Coursier\cache\v1\https\repo1.maven.org\maven2\org\scala-js\scalajs-compiler_2.13.1\1.0.0\scalajs-compiler_2.13.1-1.0.0.jar" />
       </plugins>
