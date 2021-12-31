@@ -1,5 +1,13 @@
 # Scala.js cross compile example
 
+
+Compile to javascript:
+
+  sbt fastOptJS
+
+
+
+
 This is an example on how to cross compile code to Scala.js and Scala JVM.
 
 To try it out, launch sbt and type:
