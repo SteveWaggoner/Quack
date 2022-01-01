@@ -1,3 +1,5 @@
+package com.publicscript.qucore
+
 /* ondrejspanel.github.io/ScalaFromJS/: Web*/
 
 // Gutted for js13k and modified to use Float32 buffers directly
@@ -38,13 +40,20 @@
 // 3. This notice may not be removed or altered from any source
 //	distribution.
 
+//import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits._
 
 object Audio {
 
   import scala.scalajs.js.typedarray.Float32Array
   import scala.scalajs.js.Math
+
+  import scala.scalajs.js
+
   import org.scalajs.dom.AudioContext
   import org.scalajs.dom.AudioBuffer
+  import org.scalajs.dom
+
 
   private var audio_ctx: AudioContext = null
 
@@ -78,7 +87,65 @@ object Audio {
     source.connect(panner)
     source.start()
   }
+  import scala.concurrent.Future
+  def audio_load_url_async(url:String): Future[AudioBuffer] = {
 
+    import js.Thenable.Implicits._
+
+    val responseAudioBuffer = for {
+      response <- dom.fetch(url)
+      arrayBuffer <- response.arrayBuffer()
+      audioBuffer <- audio_ctx.decodeAudioData(arrayBuffer)
+    } yield {
+      audioBuffer
+    }
+
+    responseAudioBuffer onComplete {
+      result => audio_play(result.get, 1, false, 0)
+    }
+
+    responseAudioBuffer
+  }
+
+  def audio_play_async(buffer: Future[AudioBuffer], volume: Double = 1, loop: Boolean = false, pan: Double = 0) = {
+
+    buffer onComplete {
+      result => audio_play(result.get, volume, loop, pan)
+    }
+  }
+
+
+    /*
+
+  (function () {
+    'use strict';
+
+    const URL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/123941/Yodel_Sound_Effect.mp3';
+
+    const context = new AudioContext();
+    const playButton = document.querySelector('#play');
+
+    let yodelBuffer;
+
+    window.fetch(URL)
+      .then(response => response.arrayBuffer())
+      .then(arrayBuffer => context.decodeAudioData(arrayBuffer))
+      .then(audioBuffer => {
+        playButton.disabled = false;
+        yodelBuffer = audioBuffer;
+      });
+
+    playButton.onclick = () => play(yodelBuffer);
+
+    function play(audioBuffer) {
+      const source = context.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(context.destination);
+      source.start();
+    }
+  }());
+
+*/
   def audio_get_ctx_buffer(buf_l: Float32Array, buf_r: Float32Array) = {
     val buffer = audio_ctx.createBuffer(2, buf_l.length, AUDIO_SAMPLERATE)
     buffer.getChannelData(0).set(buf_l)
