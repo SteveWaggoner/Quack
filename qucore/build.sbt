@@ -21,10 +21,14 @@ lazy val qucore = crossProject(JSPlatform, JVMPlatform).in(file(".")).
       "com.lihaoyi" %%% "upickle" % "1.1.0",
       "com.github.tototoshi" %% "scala-csv" % "1.3.6",
       "junit" % "junit" % "4.13")  //not sure why intellisense wants it explicit
-
   ).
   jsSettings(
     // Add JS-specific settings here
     scalaJSUseMainModuleInitializer := true,
+
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "1.1.0"
+    )
+
   )
 
