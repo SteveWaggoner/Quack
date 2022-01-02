@@ -67,10 +67,16 @@ object Audio {
     audio_ctx.resume()
     // Generate the lookup tables
     for (i <- 0 until AUDIO_TAB_SIZE) {
+
+      val ii = i.toFloat
+
       AUDIO_TAB(i) = Math.sin(i * 6.283184f / AUDIO_TAB_SIZE).toFloat // sin
       AUDIO_TAB(i + AUDIO_TAB_SIZE) = if (AUDIO_TAB(i) < 0) -1 else 1 // square
-      AUDIO_TAB(i + AUDIO_TAB_SIZE * 2) = i / AUDIO_TAB_SIZE - 0.5f // saw
-      AUDIO_TAB(i + AUDIO_TAB_SIZE * 3) = if (i < AUDIO_TAB_SIZE / 2) i / (AUDIO_TAB_SIZE / 4) - 1 else 3 - i / (AUDIO_TAB_SIZE / 4) // tri
+      AUDIO_TAB(i + AUDIO_TAB_SIZE * 2) = ii / AUDIO_TAB_SIZE - 0.5f // saw
+      AUDIO_TAB(i + AUDIO_TAB_SIZE * 3) = if (ii < AUDIO_TAB_SIZE / 2f) ii / (AUDIO_TAB_SIZE / 4f) - 1 else 3f - ii / (AUDIO_TAB_SIZE / 4f) // tri
+
+
+   //   println(s"i=$i  ${AUDIO_TAB(i)} ${AUDIO_TAB(i + AUDIO_TAB_SIZE)} ${AUDIO_TAB(i + AUDIO_TAB_SIZE * 2)} ${AUDIO_TAB(i + AUDIO_TAB_SIZE * 3)}")
     }
   }
 
@@ -115,37 +121,6 @@ object Audio {
   }
 
 
-    /*
-
-  (function () {
-    'use strict';
-
-    const URL = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/123941/Yodel_Sound_Effect.mp3';
-
-    const context = new AudioContext();
-    const playButton = document.querySelector('#play');
-
-    let yodelBuffer;
-
-    window.fetch(URL)
-      .then(response => response.arrayBuffer())
-      .then(arrayBuffer => context.decodeAudioData(arrayBuffer))
-      .then(audioBuffer => {
-        playButton.disabled = false;
-        yodelBuffer = audioBuffer;
-      });
-
-    playButton.onclick = () => play(yodelBuffer);
-
-    function play(audioBuffer) {
-      const source = context.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(context.destination);
-      source.start();
-    }
-  }());
-
-*/
   def audio_get_ctx_buffer(buf_l: Float32Array, buf_r: Float32Array) = {
     val buffer = audio_ctx.createBuffer(2, buf_l.length, AUDIO_SAMPLERATE)
     buffer.getChannelData(0).set(buf_l)
@@ -153,15 +128,15 @@ object Audio {
     buffer
   }
 
-  case class Instrument(osc1_oct: Double, osc1_det: Double, osc1_detune: Double, osc1_xenv: Boolean, osc1_vol: Double, osc1_waveform: Int, osc2_oct: Double, osc2_det: Double, osc2_detune: Double, osc2_xenv: Boolean, osc2_vol: Double, osc2_waveform: Int, noise_fader: Double, attack: Int, sustain: Int, release: Int, master: Double, fx_filter: Int, fx_freq: Double, fx_resonance: Double, fx_delay_time: Int, fx_delay_amt: Int, fx_pan_freq_p: Double, fx_pan_amt: Double, lfo_osc1_freq: Boolean, lfo_fx_freq: Boolean, lfo_freq_p: Double, lfo_amt: Double, lfo_waveform: Long)
+  case class Instrument(osc1_oct: Double, osc1_det: Double, osc1_detune: Double, osc1_xenv: Boolean, osc1_vol: Double, osc1_waveform: Int, osc2_oct: Double, osc2_det: Double, osc2_detune: Double, osc2_xenv: Boolean, osc2_vol: Double, osc2_waveform: Int, noise_fader: Double, attack: Double, sustain: Double, release: Double, master: Double, fx_filter: Int, fx_freq: Double, fx_resonance: Double, fx_delay_time: Int, fx_delay_amt: Int, fx_pan_freq_p: Double, fx_pan_amt: Double, lfo_osc1_freq: Boolean, lfo_fx_freq: Boolean, lfo_freq_p: Double, lfo_amt: Double, lfo_waveform: Long)
 
 
-  def audio_generate_sound(row_len: Int, note: Float, buf_l: Float32Array, buf_r: Float32Array, write_pos: Int, instrument: Instrument) = {
+  def audio_generate_sound(row_len: Int, note: Int, buf_l: Float32Array, buf_r: Float32Array, write_pos: Int, instrument: Instrument) = {
     val osc_lfo_offset = instrument.lfo_waveform * AUDIO_TAB_SIZE
     val osc1_offset = instrument.osc1_waveform * AUDIO_TAB_SIZE
     val osc2_offset = instrument.osc2_waveform * AUDIO_TAB_SIZE
     val fx_pan_freq = Math.pow(2, instrument.fx_pan_freq_p - 8) / row_len
-    val lfo_freq = (Math.pow(2, instrument.lfo_freq_p - 8) / row_len).toInt
+    val lfo_freq = Math.pow(2, instrument.lfo_freq_p - 8) / row_len
     var c1 = 0d
     var c2 = 0d
     val q = instrument.fx_resonance / 255
@@ -169,15 +144,18 @@ object Audio {
     var band = 0d
     var high = 0d
     val buf_length = buf_l.length
-    val num_samples = instrument.attack + instrument.sustain + instrument.release - 1
+    val num_samples = (instrument.attack + instrument.sustain + instrument.release - 1).toInt
     val osc1_freq = Math.pow(1.059463094, note + (instrument.osc1_oct - 8) * 12 + instrument.osc1_det - 128) * 0.00390625 * (1 + 0.0008 * instrument.osc1_detune)
     val osc2_freq = Math.pow(1.059463094, note + (instrument.osc2_oct - 8) * 12 + instrument.osc2_det - 128) * 0.00390625 * (1 + 0.0008 * instrument.osc2_detune)
     for (j <- num_samples to 0 by -1) {
       val k = j + write_pos
-      val lfor = AUDIO_TAB((osc_lfo_offset + ((k * lfo_freq * AUDIO_TAB_SIZE) & AUDIO_TAB_MASK)).toInt) * instrument.lfo_amt / 512 + 0.5
+      val lfor = AUDIO_TAB((osc_lfo_offset + ((k * lfo_freq * AUDIO_TAB_SIZE).toInt & AUDIO_TAB_MASK)).toInt) * instrument.lfo_amt / 512 + 0.5
+
+      //println(s"j=$j instrument.lfo_amt=${instrument.lfo_amt}  lfor=$lfor  (k * lfo_freq * AUDIO_TAB_SIZE)=${(k * lfo_freq * AUDIO_TAB_SIZE)}  huh=${AUDIO_TAB((osc_lfo_offset + ((k * lfo_freq * AUDIO_TAB_SIZE).toInt & AUDIO_TAB_MASK)).toInt)}")
+
       var sample = 0d
       var filter_f = instrument.fx_freq
-      var envelope = 1
+      var envelope = 1d
       // Envelope
       if (j < instrument.attack) {
         envelope = j / instrument.attack
@@ -189,11 +167,17 @@ object Audio {
       if (instrument.lfo_osc1_freq) {
         temp_f *= lfor
       }
+
+
       if (instrument.osc1_xenv) {
         temp_f *= envelope * envelope
       }
       c1 += temp_f
       sample += AUDIO_TAB(osc1_offset + ((c1 * AUDIO_TAB_SIZE).toInt & AUDIO_TAB_MASK)) * instrument.osc1_vol
+
+
+
+
       // Oscillator 2
       temp_f = osc2_freq
       if (instrument.osc2_xenv) {
@@ -201,6 +185,9 @@ object Audio {
       }
       c2 += temp_f
       sample += AUDIO_TAB(osc2_offset + ((c2 * AUDIO_TAB_SIZE).toInt & AUDIO_TAB_MASK)) * instrument.osc2_vol
+
+
+
       // Noise oscillator
       if (instrument.noise_fader != 0) {
         sample += (2 * Math.random() - 1) * instrument.noise_fader * envelope
@@ -210,16 +197,22 @@ object Audio {
       if (instrument.lfo_fx_freq) {
         filter_f *= lfor
       }
+
+
+
       filter_f = 1.5 * AUDIO_TAB((filter_f * 0.5 / AUDIO_SAMPLERATE * AUDIO_TAB_SIZE).toInt & AUDIO_TAB_MASK)
       low += filter_f * band
       high = q * (sample - band) - low
       band += filter_f * high
       sample = Array(sample, high, low, band, low + high)(instrument.fx_filter)
+
       // Panning & master volume
       temp_f = AUDIO_TAB((k * fx_pan_freq * AUDIO_TAB_SIZE).toInt & AUDIO_TAB_MASK) * instrument.fx_pan_amt / 512 + 0.5
       sample *= 0.00476 * instrument.master // 39 / 8192 = 0.00476
       buf_l(k) += (sample * (1 - temp_f)).toFloat
       buf_r(k) += (sample * temp_f).toFloat
+
+      println(s"$k = ${buf_l(k)}  sample=$sample")
     }
   }
 
@@ -242,7 +235,7 @@ object Audio {
 
           val note = track.notes(track.pattern(p) - 1)(row)
        //   if (note) {
-            audio_generate_sound(row_len, note, buf_l, buf_r, write_pos, track.instrument)
+            audio_generate_sound(row_len, note.toInt, buf_l, buf_r, write_pos, track.instrument)
        //   }
           write_pos += row_len
         }
@@ -257,8 +250,8 @@ object Audio {
     audio_get_ctx_buffer(mix_buf_l, mix_buf_r)
   }
 
-  def audio_create_sound(note: Float, instrument: Instrument, row_len: Int = 5605) = {
-    val delay_shift = (instrument.fx_delay_time * row_len).toInt >> 1
+  def audio_create_sound(note: Int, instrument: Instrument, row_len: Int = 5605) = {
+    val delay_shift = (instrument.fx_delay_time * row_len) >> 1
     val delay_amount = instrument.fx_delay_amt / 255
     val num_samples = (instrument.attack + instrument.sustain + instrument.release + delay_shift * 32 * delay_amount).toInt
     val buf_l = new Float32Array(num_samples)
