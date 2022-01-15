@@ -1,8 +1,11 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_face_normal}
-import com.publicscript.qucore.Game.{game_tick, game_time}
+import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_2d_angle,vec3_sub,vec3_add,vec3_mulf,vec3_mul,vec3_length,vec3_clone}
+import com.publicscript.qucore.Game.{game_tick, game_time,game_spawn,game_entities_friendly,game_entities_enemies}
 import com.publicscript.qucore.Audio.audio_play
+import com.publicscript.qucore.Render.{r_draw,r_camera,r_camera_yaw}
+import com.publicscript.qucore.Model.Model
+import com.publicscript.qucore.Map.{map_block_at,map_block_at_box,map_block_beneath}
 import org.scalajs.dom.AudioBuffer
 
 
@@ -12,181 +15,225 @@ object Entity {
   val ENTITY_GROUP_PLAYER = 1
   val ENTITY_GROUP_ENEMY = 2
 
-  class entity_t(var p: Any, p1: Any, p2: Any) {
-    var _model = _
-    var _check_entities = Array.empty[Any]
-    var _texture = _
-    var a = vec3()
-    var v = vec3()
-    var s = vec3(2, 2, 2)
-    var f: Double = 0
-    var _health: Double = 50
-    var _dead: Double = 0
-    var _die_at: Double = 0
-    var _step_height: Double = 0
-    var _bounciness: Double = 0
-    var _gravity: Double = 1
-    var _yaw: Double = 0
-    var _pitch: Double = 0
-    var _anim = Array(1, Array(0))
-    var _anim_time: Double = Math.random()
-    var _on_ground: Boolean | Double = 0
-    var _keep_off_ledges: Double = 0
-    var _check_against: Double = ENTITY_GROUP_NONE
-    var _stepped_up_at: Double = 0
-    this._init(p1, p2)
-    def _init(p1: Any, p2: Any) = {
-    }
+}
 
-    def _update() = {
-      if (this._model) {
-        this._draw_model()
-      }
-    }
+class Entity(var pos: Vec3) {
 
-    def _update_physics() = {
-      if (this._die_at && this._die_at < game_time) {
-        this._kill()
-        return
-      }
-      // Apply Gravity
-      this.a.y = -1200 * this._gravity
-      // Integrate acceleration & friction into velocity
-      val ff = Math.min(this.f * game_tick, 1)
-      this.v = vec3_add(this.v, vec3_sub(vec3_mulf(this.a, game_tick), vec3_mul(this.v, vec3(ff, 0, ff))))
-      // Set up the _check_entities array for entity collisions
-      this._check_entities = Array(
-        Array(),
-        game_entities_friendly,
-        game_entities_enemies
-      )(this._check_against)
-      // Divide the physics integration into 16 unit steps; otherwise fast
-      // projectiles may just move through walls.
-      val original_step_height = this._step_height
-      val move_dist = vec3_mulf(this.v, game_tick)
-      val steps = Math.ceil(vec3_length(move_dist) / 16)
-      val move_step = vec3_mulf(move_dist, 1 / steps)
-      for (s <- 0 until steps) {
-        // Remember last position so we can roll back
-        val lp = vec3_clone(this.p)
-        // Integrate velocity into position
-        this.p = vec3_add(this.p, move_step)
-        // Collision with walls, horizonal
-        if (this._collides(vec3(this.p.x, lp.y, lp.z))) {
-          // Can we step up?
-          if (!this._step_height || !this._on_ground || this.v.y > 0 || this._collides(vec3(this.p.x, lp.y + this._step_height, lp.z))) {
-            this._did_collide(0)
-            this.p.x = lp.x
-            this.v.x = -this.v.x * this._bounciness
-          } else {
-            lp.y += this._step_height
-            this._stepped_up_at = game_time
-          }
-          s = steps // stop after this iteration
-        }
-        // Collision with walls, vertical
-        if (this._collides(vec3(this.p.x, lp.y, this.p.z))) {
-          // Can we step up?
-          if (!this._step_height || !this._on_ground || this.v.y > 0 || this._collides(vec3(this.p.x, lp.y + this._step_height, this.p.z))) {
-            this._did_collide(2)
-            this.p.z = lp.z
-            this.v.z = -this.v.z * this._bounciness
-          } else {
-            lp.y += this._step_height
-            this._stepped_up_at = game_time
-          }
-          s = steps // stop after this iteration
-        }
-        // Collision with ground/Ceiling
-        if (this._collides(this.p)) {
-          this._did_collide(1)
-          this.p.y = lp.y
-          // Only bounce from ground/ceiling if we have enough velocity
-          val bounce = if (Math.abs(this.v.y) > 200) this._bounciness else 0
-          this._on_ground = this.v.y < 0 && !bounce
-          this.v.y = -this.v.y * bounce
-          s = steps // stop after this iteration
-        }
-        this._step_height = original_step_height
-      }
-    }
+  //Entity Factory
+  def apply(entity_name:String, pos:Vec3, data1:Any, data2:Any) : Entity = {
 
-    def _collides(p: Any) = {
-      if (this._dead) {
-        return
-      }
-      /* Unsupported: ForOfStatement */ for (let entity of this._check_entities) {
-        if (vec3_dist(p, entity.p) < this.s.y + entity.s.y) {
-          // If we collide with an entity set the step height to 0,
-          // so we don't climb up on its shoulders :/
-          this._step_height = 0;
-          this._did_collide_with_entity(entity);
-          return true;
-        }
-      }
-      // Check if there's no block beneath this point. We want the AI to keep
-      // off of ledges.
-      if (this._on_ground && this._keep_off_ledges && !map_block_at(p.x >> 5, (p.y - this.s.y - 8) >> 4, p.z >> 5) && !map_block_at(p.x >> 5, (p.y - this.s.y - 24) >> 4, p.z >> 5)) {
-        return true
-      }
-      // Do the normal collision check with the whole box
-      map_block_at_box(vec3_sub(p, this.s), vec3_add(p, this.s))
-    }
+    // Entity Id to class - must be consistent with map_packer.c line ~900
 
-    def _did_collide(axis: Double) = {
-    }
+    entity_name match {
+      case "player" => new EntityPlayer(pos, data1, data2)
+      case "grunt" => new EntityEnemyGrunt(pos, data1, data2)
 
-    def _did_collide_with_entity(other: entity_t) = {
-    }
+      /*
+            case 2 => Some(new EntityEnemyEnforcer(p, e.data1, e.data2))
+            case 3 => Some(new EntityEnemyOgre(p, e.data1, e.data2))
+            case 4 => Some(new EntityEnemyZombie(p, e.data1, e.data2))
+            case 5 => Some(new EntityEnemyHound(p, e.data1, e.data2))
+            case 6 => Some(new EntityPickupNailgun(p, e.data1, e.data2))
+            case 7 => Some(new EntityPickupGrenadeLauncher(p, e.data1, e.data2))
+            case 8 => Some(new EntityPickupHealth(p, e.data1, e.data2))
+            case 9 => Some(new EntityPickupNails(p, e.data1, e.data2))
+            case 10 => Some(new EntityPickupGrenades(p, e.data1, e.data2))
+            case 11 => Some(new EntityBarrel(p, e.data1, e.data2))
+            case 12 => Some(new EntityLight(p, e.data1, e.data2))
+            case 13 => Some(new EntityTriggerLevel(p, e.data1, e.data2))
+            case 14 => Some(new EntityDoor(p, e.data1, e.data2))
+            case 15 => Some(new EntityPickupKey(p, e.data1, e.data2))
+            case 16 => Some(new EntityTorch(p, e.data1, e.data2))
+      */
 
-    def _draw_model() = {
-      this._anim_time += game_tick
-      // Calculate which frames to use and how to mix them
-      val f = this._anim_time / this._anim(0)
-      var mix = f - (f | 0)
-      val frame_cur = this._anim(1)((f | 0) % this._anim(1).length)
-      val frame_next = this._anim(1)(((f + 1) | 0) % this._anim(1).length)
-      // Swap frames if we're looping to the first frame again
-      if (frame_next < frame_cur) {
-        /* Unsupported: ArrayPattern */
-        = Array(frame_cur, frame_next)
-        mix = 1 - mix
-      }
-      r_draw(this.p, this._yaw, this._pitch, this._texture, this._model.f(frame_cur), this._model.f(frame_next), mix, this._model.nv)
+      case _ => throw new IllegalArgumentException(s"Unknown entity name: $entity_name")
     }
-
-    def _spawn_particles(amount: Double, speed: Double = 1, model: Any, texture: Any, lifetime: Double) = {
-      for (i <- 0 until amount) {
-        val particle = game_spawn(entity_particle_t, this.p)
-        particle._model = model
-        particle._texture = texture
-        particle._die_at = game_time + lifetime + Math.random() * lifetime * 0.2
-        particle.v = vec3((Math.random() - 0.5) * speed, Math.random() * speed, (Math.random() - 0.5) * speed)
-      }
-    }
-
-    def _receive_damage(from: Any, amount: Double) = {
-      if (this._dead) {
-        return
-      }
-      this._health -= amount
-      if (this._health <= 0) {
-        this._kill()
-      }
-    }
-
-    def _play_sound(sound: AudioBuffer) = {
-      val volume = clamp(scale(vec3_dist(this.p, r_camera), 64, 1200, 1, 0), 0, 1)
-      val pan = Math.sin(vec3_2d_angle(this.p, r_camera) - r_camera_yaw) * -1
-      audio_play(sound, volume, false, pan)
-    }
-
-    def _kill() = {
-      this._dead = 1
-    }
-
   }
 
 
 
-}
+    case class Anim(var speed:Double, var frame:Array[Int])
+
+    var model : Option[Model] = None
+    var check_entities = Array.empty[Entity]
+    var check_against: Int = Entity.ENTITY_GROUP_NONE
+    var texture : Option[Int] = None
+
+    var accel = vec3()
+    var veloc = vec3()
+    var size = vec3(2, 2, 2)
+    var f: Double = 0
+    var health: Int = 50
+    var dead: Boolean = false
+    var die_at: Double = 0
+    var step_height: Double = 0
+    var bounciness: Double = 0
+    var gravity: Double = 1
+    var yaw: Double = 0
+    var pitch: Double = 0
+    var anim = Anim(1, Array(0))
+    var anim_time: Double = Math.random()
+    var on_ground: Boolean = false
+    var keep_off_ledges: Boolean = false
+    var stepped_up_at: Double = 0
+
+    def update() = {
+      if (model.isDefined) {
+        draw_model()
+      }
+    }
+
+    def update_physics() : Unit = {
+      if (die_at != 0 && die_at < game_time) {
+        kill()
+        return
+      }
+      // Apply Gravity
+      this.accel.y = -1200 * gravity
+      // Integrate acceleration & friction into velocity
+      val ff = Math.min(this.f * game_tick, 1)
+      this.veloc = vec3_add(this.veloc, vec3_sub(vec3_mulf(this.accel, game_tick), vec3_mul(this.veloc, vec3(ff, 0, ff))))
+
+      // Set up the _check_entities array for entity collisions
+      this.check_entities = check_against match {
+        case Entity.ENTITY_GROUP_NONE => Array()
+        case Entity.ENTITY_GROUP_PLAYER => game_entities_friendly.toArray
+        case Entity.ENTITY_GROUP_ENEMY => game_entities_enemies.toArray
+      }
+
+
+      // Divide the physics integration into 16 unit steps; otherwise fast
+      // projectiles may just move through walls.
+      val original_step_height = this.step_height
+      val move_dist = vec3_mulf(this.veloc, game_tick)
+      val steps = Math.ceil(vec3_length(move_dist) / 16).toInt
+      val move_step = vec3_mulf(move_dist, 1 / steps)
+      var s = 0
+      while (s < steps) {
+        // Remember last position so we can roll back
+        val last_pos = vec3_clone(this.pos)
+        // Integrate velocity into position
+        this.pos = vec3_add(this.pos, move_step)
+        // Collision with walls, horizonal
+        if (this.collides(vec3(this.pos.x, last_pos.y, last_pos.z))) {
+          // Can we step up?
+          if (this.step_height!=0 || !this.on_ground || this.veloc.y > 0 || this.collides(vec3(this.pos.x, last_pos.y + this.step_height, last_pos.z))) {
+            this.did_collide(0)
+            this.pos.x = last_pos.x
+            this.veloc.x = -this.veloc.x * this.bounciness
+          } else {
+            last_pos.y += this.step_height
+            this.stepped_up_at = game_time
+          }
+          s = steps // stop after this iteration
+        }
+        // Collision with walls, vertical
+        if (this.collides(vec3(this.pos.x, last_pos.y, this.pos.z))) {
+          // Can we step up?
+          if (this.step_height==0 || !this.on_ground || this.veloc.y > 0 || this.collides(vec3(this.pos.x, last_pos.y + this.step_height, this.pos.z))) {
+            this.did_collide(2)
+            this.pos.z = last_pos.z
+            this.veloc.z = -this.veloc.z * this.bounciness
+          } else {
+            last_pos.y += this.step_height
+            this.stepped_up_at = game_time
+          }
+          s = steps // stop after this iteration
+        }
+        // Collision with ground/Ceiling
+        if (this.collides(this.pos)) {
+          this.did_collide(1)
+          this.pos.y = last_pos.y
+          // Only bounce from ground/ceiling if we have enough velocity
+          val bounce = if (Math.abs(this.veloc.y) > 200) this.bounciness else 0
+          this.on_ground = this.veloc.y < 0 && bounce==0
+          this.veloc.y = -this.veloc.y * bounce
+          s = steps // stop after this iteration
+        }
+        this.step_height = original_step_height
+
+        s += 1
+      }
+    }
+
+    def collides(p: Vec3): Boolean = {
+      if (dead) {
+        return false
+      }
+      for (entity <- check_entities) {
+        if (vec3_dist(p, entity.pos) < this.size.y + entity.size.y) {
+          // If we collide with an entity set the step height to 0,
+          // so we don't climb up on its shoulders :/
+          step_height = 0
+          did_collide_with_entity(entity)
+          return true
+        }
+      }
+      // Check if there's no block beneath this point. We want the AI to keep
+      // off of ledges.
+      if (on_ground && keep_off_ledges && !map_block_beneath(p, this.size)) {
+        return true
+      }
+      // Do the normal collision check with the whole box
+      map_block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
+    }
+
+    def did_collide(axis: Double) = {
+      false
+    }
+
+    def did_collide_with_entity(other: Entity) = {
+      false
+    }
+
+    def draw_model() = {
+
+      this.anim_time += game_tick
+      // Calculate which frames to use and how to mix them
+      val f = (anim_time / anim.speed).toInt
+      var mix = 0 // f - (f | 0) // <- what is this doing????? just make zero for now
+      var frame_cur : Int = this.anim.frame(f % anim.frame.length)
+      var frame_next : Int = this.anim.frame((f + 1) % this.anim.frame.length)
+      // Swap frames if we're looping to the first frame again
+      if (frame_next < frame_cur) {
+
+        val tmp = frame_cur
+        frame_cur = frame_next
+        frame_next = tmp
+
+        mix = 1 - mix
+      }
+      r_draw(pos, yaw, pitch, texture.get, model.get.f(frame_cur), model.get.f(frame_next), mix, model.get.nv)
+    }
+
+    def spawn_particles(amount: Int, speed: Double = 1, model: Model, texture: Int, lifetime: Double) = {
+      for (i <- 0 until amount) {
+        val particle = game_spawn("particle", pos)
+        particle.model = Some(model)
+        particle.texture = Some(texture)
+        particle.die_at = (game_time + lifetime + Math.random() * lifetime * 0.2).toInt
+        particle.veloc = vec3((Math.random() - 0.5) * speed, Math.random() * speed, (Math.random() - 0.5) * speed)
+      }
+    }
+
+    def receive_damage(from: Any, amount: Double) = {
+      if (!dead) {
+        health -= amount
+        if (health <= 0) {
+          kill()
+        }
+      }
+    }
+
+    def play_sound(sound: AudioBuffer) = {
+      val volume = clamp(scale(vec3_dist(this.pos, r_camera), 64, 1200, 1, 0), 0, 1)
+      val pan = Math.sin(vec3_2d_angle(this.pos, r_camera) - r_camera_yaw) * -1
+      audio_play(sound, volume, false, pan)
+    }
+
+    def kill() = {
+      dead = true
+    }
+
+  }
+

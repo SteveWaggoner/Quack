@@ -1,19 +1,20 @@
 package com.publicscript.qucore
 
+import scala.scalajs.js
 import scala.scalajs.js.typedarray.Float32Array
-
 import scala.scalajs.js.Any
-
-import com.publicscript.qucore.MathUtils.{Vec3, vec3,vec3_face_normal,clamp,scale,vec3_dist}
+import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_face_normal}
 import com.publicscript.qucore.Document.c
+import org.scalajs.dom.HTMLCanvasElement
 
+import scala.collection.mutable.ArrayBuffer
 
 
 object Render {
-  object options {
-    var antialias = false
-  }
-  val gl = c.getContext("webgl", options) || c.getContext("experimental-webgl", options)
+
+  val gl_options = js.Dynamic.literal(antialias = false)
+  val gl = c.getContext("webgl", gl_options) || c.getContext("experimental-webgl", gl_options)
+
   val R_MAX_VERTS = 1024 * 64
   val R_MAX_LIGHT_V3 = 64
   val R_SOURCE_VS = "precision highp float;" +
@@ -72,11 +73,11 @@ object Render {
   var r_num_verts = 0
   val r_light_buffer = new Float32Array(R_MAX_LIGHT_V3 * 3)
   var r_num_lights = 0
-  val r_textures = Array.empty[AnyRef]
-  val r_camera = vec3(0, 0, -50)
-  val r_camera_pitch = 0.2
-  val r_camera_yaw = 0
-  var r_draw_calls = Array.empty[Array[Double]]
+  val r_textures = new ArrayBuffer[Texture]
+  var r_camera = vec3(0, 0, -50)
+  var r_camera_pitch = 0.2d
+  var r_camera_yaw = 0d
+  var r_draw_calls = ArrayBuffer.empty[DrawCall]
 
 
   var r_u_camera : Any = null
@@ -86,15 +87,23 @@ object Render {
   var r_u_rotation  : Any = null
   var r_u_frame_mix  : Any = null
 
+  var r_va_p2: Any = null
+  var r_va_n2:Any = null
+
   def r_init() = {
     // Create shorthand WebGL function names
     // let webglShortFunctionNames = {};
+
+
+    /*
     for (name <- gl) {
       if (gl(name).length != undefined) {
         gl(name.`match`("/(^..|[A-Z]|\d.|v$)/g".r).join("")) = gl(name)
         // webglShortFunctionNames[name] = 'gl.' +name.match(/(^..|[A-Z]|\d.|v$)/g).join('');
       }
     }
+    */
+
     // console.log(JSON.stringify(webglShortFunctionNames, null, '\t'));
     val shader_program = gl.createProgram()
     gl.attachShader(shader_program, r_compile_shader(gl.VERTEX_SHADER, R_SOURCE_VS))
@@ -111,8 +120,8 @@ object Render {
     r_vertex_attrib(shader_program, "p", 3, 8, 0) // position
     r_vertex_attrib(shader_program, "t", 2, 8, 3) // texture coord
     r_vertex_attrib(shader_program, "n", 3, 8, 5)
-    val r_va_p2 = r_vertex_attrib(shader_program, "p2", 3, 8, 0)
-    val r_va_n2 = r_vertex_attrib(shader_program, "n2", 3, 8, 5) // mix normals
+    r_va_p2 = r_vertex_attrib(shader_program, "p2", 3, 8, 0)
+    r_va_n2 = r_vertex_attrib(shader_program, "n2", 3, 8, 5) // mix normals
     gl.enable(gl.DEPTH_TEST)
     gl.enable(gl.BLEND)
     gl.enable(gl.CULL_FACE)
@@ -134,11 +143,11 @@ object Render {
     location
   }
 
-  def r_create_texture(c: Any) = {
-    object t {
-      var t = gl.createTexture()
-      var c = c
-    }
+  case class Texture(t:Any, c:HTMLCanvasElement)
+
+  def r_create_texture(c: HTMLCanvasElement) = {
+
+    val t = new Texture(t = gl.createTexture(), c = c)
     gl.bindTexture(gl.TEXTURE_2D, t.t)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -146,7 +155,7 @@ object Render {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
     gl.generateMipmap(gl.TEXTURE_2D)
-    r_textures.push(t)
+    r_textures.addOne(t)
   }
 
   def r_prepare_frame(r: Double, g: Double, b: Double) = {
@@ -160,40 +169,42 @@ object Render {
     gl.uniform4f(r_u_camera, r_camera.x, r_camera.y, r_camera.z, 16 / 9)
     gl.uniform2f(r_u_mouse, r_camera_yaw, r_camera_pitch)
     gl.uniform3fv(r_u_lights, r_light_buffer)
-    var vo = 0
+    var vo = 0d
     var last_texture = -1
-    /* Unsupported: ForOfStatement */ for (let c of r_draw_calls) {
+    for (c <- r_draw_calls) {
 
       // c = [x, y, z, yaw, pitch, texture, offset1, offset2, mix, length]
 
       // Bind new texture only if it changed from the previous one. The map
       // is sorted by texture indices, so this helps.
-      if (last_texture != c[5]) {
-        last_texture = c[5];
-        gl.bindTexture(gl.TEXTURE_2D, r_textures[last_texture].t);
+      if (last_texture != c.texture) {
+        last_texture = c.texture
+        gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).t)
       }
 
-      gl.uniform3f(r_u_pos, c[0], c[1], c[2]);
-      gl.uniform2f(r_u_rotation, c[3], c[4]);
-      gl.uniform1f(r_u_frame_mix, c[8]);
+      gl.uniform3f(r_u_pos, c.x, c.y, c.z)
+      gl.uniform2f(r_u_rotation, c.yaw, c.pitch)
+      gl.uniform1f(r_u_frame_mix, c.mix)
 
       // If we have two different frames, calculate the offset from the
       // drawArrays call to the mix frame.
       // Setting the vertexAttribPointer is quite expensive, so we only
       // do this if we have to; i.e. for animated models.
-      if (vo != (c[7]-c[6])) {
-        vo = (c[7]-c[6]);
-        gl.vertexAttribPointer(r_va_p2, 3, gl.FLOAT, false, 8 * 4, vo*8*4);
-        gl.vertexAttribPointer(r_va_n2, 3, gl.FLOAT, false, 8 * 4, (vo*8+5)*4);
+      if (vo != (c.offset2-c.offset1)) {
+        vo = (c.offset2-c.offset1)
+        gl.vertexAttribPointer(r_va_p2, 3, gl.FLOAT, false, 8 * 4, vo*8*4)
+        gl.vertexAttribPointer(r_va_n2, 3, gl.FLOAT, false, 8 * 4, (vo*8+5)*4)
       }
-      gl.drawArrays(gl.TRIANGLES, c[6], c[9]);
+      gl.drawArrays(gl.TRIANGLES, c.texture, c.num_verts)
     }
     // Reset draw calls
-    r_draw_calls = Array()
+    r_draw_calls.clear()
   }
 
-  def r_draw(pos: Vec3, yaw: Any, pitch: Any, texture: Double, f1: Any, f2: Any, mix: Any, num_verts: Any) = {
-    r_draw_calls.push(Array(
+  case class DrawCall(x:Double, y:Double, z:Double, yaw:Double, pitch:Double, texture:Int,offset1:Double,offset2:Double,mix:Any,num_verts:Int)
+
+  def r_draw(pos: Vec3, yaw: Double, pitch: Double, texture: Int, f1: Double, f2: Double, mix: Any, num_verts: Int) = {
+    r_draw_calls.addOne(new DrawCall(
       pos.x, pos.y, pos.z, yaw, pitch,
       texture, f1, f2, mix, num_verts
     ))
@@ -204,7 +215,7 @@ object Render {
   }
 
   def r_push_vert(pos: Vec3, normal: Vec3, u: Double, v: Double) = {
-    r_buffer.set(Array(pos.x, pos.y, pos.z, u, v, normal.x, normal.y, normal.z), r_num_verts * 8)
+    r_buffer.set(js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, u.toFloat, v.toFloat, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat), r_num_verts * 8)
     r_num_verts += 1
   }
 
@@ -218,7 +229,7 @@ object Render {
     r_push_vert(v1, n, 0, 0)
   }
 
-  def r_push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Double) = {
+  def r_push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
     val canvas = r_textures(texture).c
     val index = r_num_verts
     val tx = sx / canvas.width
@@ -244,8 +255,8 @@ object Render {
   def r_push_light(pos: Vec3, intensity: Double, r: Double, g: Double, b: Double) = {
     // Calculate the distance to the light, fade it out between 768--1024
     val fade = clamp(scale(vec3_dist(pos, r_camera), 768, 1024, 1, 0), 0, 1) * intensity * 10
-    if (fade && r_num_lights < R_MAX_LIGHT_V3 / 2) {
-      r_light_buffer.set(Array(pos.x, pos.y, pos.z, r * fade, g * fade, b * fade), r_num_lights * 6)
+    if (fade > 0 && r_num_lights < R_MAX_LIGHT_V3 / 2) {
+      r_light_buffer.set(js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, (r * fade).toFloat, (g * fade).toFloat, (b * fade).toFloat), r_num_lights * 6)
       r_num_lights += 1
     }
   }

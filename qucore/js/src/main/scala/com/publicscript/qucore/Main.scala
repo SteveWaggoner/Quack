@@ -2,11 +2,70 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.Audio.{Instrument, Track}
 import org.scalajs.dom
-import org.scalajs.dom.document
+import org.scalajs.dom.{AudioBuffer, MouseEvent, document}
 import org.scalajs.dom.html.Button
-import org.scalajs.dom.MouseEvent
 
 object Main {
+
+  val map_data = 0
+  val model_data = 0
+
+  // Particles
+  val model_explosion : Model.Model = null
+  val model_blood : Model.Model = null
+  val model_gib : Model.Model = null
+  val model_gib_pieces : Model.Model = null
+
+  // Enemies
+  val model_grunt : Model.Model = null
+  val model_enforcer : Model.Model = null
+  val model_ogre : Model.Model = null
+  val model_zombie : Model.Model = null
+  val model_hound : Model.Model = null
+
+  // Map Objects
+  val model_barrel : Model.Model = null
+  val model_torch : Model.Model = null
+
+  // Weapon view models
+  val model_shotgun : Model.Model = null
+  val model_nailgun : Model.Model = null
+  val model_grenadelauncher : Model.Model = null
+
+  // Pickups
+  val model_pickup_nailgun : Model.Model = null
+  val model_pickup_grenadelauncher : Model.Model = null
+  val model_pickup_box : Model.Model = null
+  val model_pickup_grenades : Model.Model = null
+  val model_pickup_key : Model.Model = null
+  val model_door : Model.Model = null
+
+  // Projectiles
+  val model_grenade : Model.Model = null
+  val model_plasma : Model.Model = null // aka. nail
+
+  // Sounds
+  val sfx_enemy_hit : AudioBuffer = null
+  val sfx_enemy_gib : AudioBuffer = null
+  val sfx_enemy_hound_attack : AudioBuffer = null
+
+  val sfx_no_ammo : AudioBuffer = null
+  val sfx_hurt : AudioBuffer = null
+  val sfx_pickup : AudioBuffer = null
+
+  val sfx_plasma_shoot : AudioBuffer = null
+
+  val sfx_shotgun_shoot : AudioBuffer = null
+  val sfx_shotgun_reload : AudioBuffer = null
+
+  val sfx_nailgun_shoot : AudioBuffer = null
+  val sfx_nailgun_hit : AudioBuffer = null
+
+  val sfx_grenade_shoot : AudioBuffer = null
+  val sfx_grenade_bounce : AudioBuffer = null
+  val sfx_grenade_explode : AudioBuffer = null
+
+
 
   var game_time:Int = 0
 

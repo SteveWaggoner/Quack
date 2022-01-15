@@ -20,14 +20,14 @@ object Input {
 
   def dump() = {
     var ret = ""
-    if (key_up) ret += "[key_up]"
-    if (key_down) ret += "[key_down]"
-    if (key_left) ret += "[key_left]"
-    if (key_right) ret += "[key_right]"
-    if (key_prev) ret += "[key_prev]"
-    if (key_next) ret += "[key_next]"
-    if (key_action) ret += "[key_action]"
-    if (key_jump) ret += "[key_jump]"
+    if (key_up==1) ret += "[key_up]"
+    if (key_down==1) ret += "[key_down]"
+    if (key_left==1) ret += "[key_left]"
+    if (key_right==1) ret += "[key_right]"
+    if (key_prev==1) ret += "[key_prev]"
+    if (key_next==1) ret += "[key_next]"
+    if (key_action==1) ret += "[key_action]"
+    if (key_jump==1) ret += "[key_jump]"
 
     ret += s" mouse_x=$mouse_x, mouse_y=$mouse_y  last_wheel_event=$last_wheel_event"
     println(ret)
@@ -49,15 +49,15 @@ object Input {
   var key_action = false
   var key_jump = false
 
-  def setKey(key: String, down: Boolean): Boolean = {
+  def setKey(key: String, pressed: Boolean): Boolean = {
     key match {
-      case "W" | "w" | "ArrowUp" => key_up = down
-      case "A" | "a" | "ArrowLeft" => key_left = down
-      case "S" | "s" | "ArrowDown" => key_down = down
-      case "D" | "d" | "ArrowRight" => key_right = down
-      case "Q" | "q" => key_prev = down
-      case "E" | "e" => key_next = down
-      case " " => key_jump = down
+      case "W" | "w" | "ArrowUp" => key_up = pressed
+      case "A" | "a" | "ArrowLeft" => key_left = pressed
+      case "S" | "s" | "ArrowDown" => key_down = pressed
+      case "D" | "d" | "ArrowRight" => key_right = pressed
+      case "Q" | "q" => key_prev = pressed
+      case "E" | "e" => key_next = pressed
+      case " " => key_jump = pressed
       case _ => return false
     }
     dump()

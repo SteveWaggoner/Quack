@@ -16,7 +16,7 @@ object MathUtils {
     Math.atan2(Math.sin(r), Math.cos(r))
   }
 
-  case class Vec3(x: Double, y: Double, z: Double);
+  case class Vec3(var x: Double, var y: Double, var z: Double);
 
 
   def vec3(x: Double = 0, y: Double = 0, z: Double = 0) = {

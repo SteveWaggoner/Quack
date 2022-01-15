@@ -1,14 +1,18 @@
 package com.publicscript.qucore
 
-import org.scalajs.dom.document
-import org.scalajs.dom.{HTMLCanvasElement, HTMLDivElement}
+import org.scalajs.dom.{HTMLCanvasElement, HTMLDivElement, HTMLInputElement, document}
 
 
 object Document {
 
   val c : HTMLCanvasElement = null
   val ts : HTMLDivElement = null
+  val m : HTMLInputElement = null
+  val mi : HTMLInputElement = null
 
+  val a:HTMLDivElement = null
+  val h:HTMLDivElement = null
+  val msg:HTMLDivElement = null
 
   def init() = {
     document.body.innerHTML +=

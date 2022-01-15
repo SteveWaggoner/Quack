@@ -1,24 +1,50 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.Document.ts
+import com.publicscript.qucore.Map.{MapEntity,map_init,map_draw}
+import com.publicscript.qucore.MathUtils.{Vec3, vec3}
+
+import scala.collection.mutable.ArrayBuffer
+
+import com.publicscript.qucore.Main.map_data
+import com.publicscript.qucore.Document.msg
+
+import com.publicscript.qucore.Render.{r_prepare_frame,r_end_frame,r_camera,r_camera_yaw,r_camera_pitch}
+
+import com.publicscript.qucore.Document.{h,a}
+
+import com.publicscript.qucore.Input.{mouse_x,mouse_y,key_prev,key_next}
+
+import scala.scalajs.js.timers._
+
+import org.scalajs.dom.window.requestAnimationFrame
+
+
 
 object Game {
 
-  var game_tick = 0
-  var game_time = 0.016
+  var game_tick = 0d
+  var game_time = 0.016d
   var game_real_time_last: Double = _
-  var game_message_timeout = 0
-  var game_entities = Array.empty[type]
-  var game_entity_player = _
+  var game_message_timeout : SetTimeoutHandle = _
+  var game_entities = new ArrayBuffer[Entity](0)
+  var game_entity_player: Entity = _
 
-  def game_init(map_index: Double) = {
+
+  var game_entities_enemies = new ArrayBuffer[Entity](0)
+  var game_entities_friendly = new ArrayBuffer[Entity](0)
+  var game_map_index = -1
+
+  var game_jump_to_next_level = false
+
+
+  def game_init(map_index: Int) = {
     {
       ts.style.display = "none"
-      game_entities = Array()
+      game_entities.clear()
     }
-    val game_entities_enemies = Array.empty[Unit]
-    val game_entities_friendly = Array.empty[Unit]
-    val game_map_index = map_index
+    game_map_index = map_index
+
     map_init(map_data(game_map_index))
   }
 
@@ -26,18 +52,18 @@ object Game {
     val game_jump_to_next_level = 1
   }
 
-  def game_spawn(`type`: Any, pos: Any, p1: Any, p2: Any) = {
-    val entity = new `type`(pos, p1, p2)
-    game_entities.push(entity)
+  def game_spawn(entity_name:String, pos:Vec3, data1:Any = null, data2:Any = null) : Entity = {
+    val entity = Entity(entity_name, pos, data1, data2)
+    game_entities.addOne(entity)
     entity
   }
 
-  def game_show_message(text: Any) = {
+
+  def game_show_message(text: String) = {
     msg.textContent = text
     msg.style.display = "block"
     clearTimeout(game_message_timeout)
-    game_message_timeout = setTimeout(() => msg.style.display = "none"
-      , 2000)
+    game_message_timeout = setTimeout(2000) { msg.style.display = "none" }
   }
 
   def title_show_message(msg: String, sub: String = "") = {
@@ -45,35 +71,43 @@ object Game {
     ts.style.display = "block"
   }
 
-  def game_run(time_now_par: Double) = {
+  def game_run(time_now_par: Double) : Unit = {
     var time_now = time_now_par
+
     requestAnimationFrame(game_run)
     time_now *= 0.001
-    game_tick = Math.min(time_now - (game_real_time_last || time_now), 0.05)
+
+    if ( game_real_time_last == 0)
+      game_real_time_last = time_now
+
+    game_tick = Math.min(time_now - game_real_time_last, 0.05)
     game_real_time_last = time_now
     game_time += game_tick
     r_prepare_frame(0.1, 0.2, 0.5)
     // Update and render entities
-    val alive_entities = Array.empty[type]
-    /* Unsupported: ForOfStatement */ for (let entity of game_entities) {
-      if (!entity._dead) {
-        entity._update();
-        alive_entities.push(entity);
+    val alive_entities = new ArrayBuffer[Entity](0)
+    for (entity <- game_entities) {
+      if (!entity.dead) {
+        entity.update()
+        alive_entities.addOne(entity);
       }
     }
     game_entities = alive_entities
     map_draw()
     r_end_frame()
     // Reset mouse movement and buttons that should be pressed, not held.
-    mouse_x = mouse_y = 0
-    keys(key_next) = keys(key_prev) = 0
+    mouse_x = 0
+    mouse_y = 0
+    key_next = false
+    key_prev = false
     if (game_jump_to_next_level) {
-      game_jump_to_next_level = 0
+      game_jump_to_next_level = false
       game_map_index += 1
       if (game_map_index == 2) {
         title_show_message("THE END", "THANKS FOR PLAYING ❤")
-        h.textContent = a.textContent = ""
-        game_entity_player._dead = 1
+        h.textContent = ""
+        a.textContent = ""
+        game_entity_player.dead = true
         // Set camera position for end screen
         r_camera = vec3(1856, 784, 2272)
         r_camera_yaw = 0
