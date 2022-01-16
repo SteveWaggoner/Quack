@@ -77,6 +77,8 @@ class Entity(var pos: Vec3) {
     var keep_off_ledges: Boolean = false
     var stepped_up_at: Double = 0
 
+    var needs_key = false
+
     def update() = {
       if (model.isDefined) {
         draw_model()

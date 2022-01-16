@@ -1,20 +1,18 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{vec3,Vec3,clamp,vec3_mulf,vec3_rotate_y,vec3_rotate_yaw_pitch,vec3_add,vec3_length,scale}
-import com.publicscript.qucore.Game.{game_map_index,game_entity_player,game_entities_friendly,game_spawn,game_time,game_init,title_show_message}
-
-
-import com.publicscript.qucore.Audio.{audio_play}
-
-import com.publicscript.qucore.Main.{sfx_no_ammo,sfx_hurt}
-
-import com.publicscript.qucore.Render.{r_draw,r_camera,r_camera_yaw,r_camera_pitch}
-
+import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_add, vec3_length, vec3_mulf, vec3_rotate_y, vec3_rotate_yaw_pitch}
+import com.publicscript.qucore.Game.{game_entities_friendly, game_entity_player, game_init, game_map_index, game_spawn, game_time, title_show_message}
+import com.publicscript.qucore.Audio.audio_play
+import com.publicscript.qucore.Main.{sfx_hurt, sfx_no_ammo}
+import com.publicscript.qucore.Render.{r_camera, r_camera_pitch, r_camera_yaw, r_draw}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
-import com.publicscript.qucore.Input.{mouse_x,mouse_y,key_right,key_left,key_up,key_down,key_jump,key_next,key_prev,key_action}
-import scala.scalajs.js.timers._
+import com.publicscript.qucore.Input.{key_action, key_down, key_jump, key_left, key_next, key_prev, key_right, key_up, mouse_x, mouse_y}
 
-import com.publicscript.qucore.Document.{m,mi,h,a}
+import scala.scalajs.js.timers._
+import com.publicscript.qucore.Document.{a, h, m, mi}
+
+import scala.collection.mutable.ArrayBuffer
+
 
 
 class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
@@ -28,7 +26,8 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
   var can_shoot_at = 0d
   health = 100
   check_against = ENTITY_GROUP_ENEMY
-  val weapons = Array(new WeaponShotgun())
+  val weapons = new ArrayBuffer[Weapon]()
+  weapons.addOne(new WeaponShotgun())
   var weapon_index = 0
 
   // Map 1 needs some rotation of the starting look-at direction

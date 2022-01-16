@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3_add,vec3}
 import com.publicscript.qucore.Main.{model_grunt,sfx_shotgun_shoot}
-
 import com.publicscript.qucore.Game.{game_spawn,game_time}
 
 class EntityEnemyGrunt(p: Vec3, p1: Any, p2: Any) extends EntityEnemy(p,p1,p2) {

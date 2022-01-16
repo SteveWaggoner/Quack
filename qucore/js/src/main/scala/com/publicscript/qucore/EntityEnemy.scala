@@ -6,58 +6,57 @@ import com.publicscript.qucore.Map.{map_trace}
 
 import com.publicscript.qucore.Main.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
 
-abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
+abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
 
-  case class State(anim_index:Int, speed:Double, next_state_update:Double, next_state:State = null)
+  case class State(anim_index: Int, speed: Double, next_state_update: Double, next_state: State = null)
 
   // Animations
-  val ANIMS = Array(
-    Anim(1, Array(0)),              // 0: Idle
-    Anim(0.40, Array(1, 2, 3, 4)),  // 1: Walk
-    Anim(0.20, Array(1, 2, 3, 4)),  // 2: Run
-    Anim(0.25, Array(0, 5, 5, 5)),  // 3: Attack prepare
-    Anim(0.25, Array(5, 0, 0, 0))   // 4: Attack
+  var ANIMS = Array(
+    Anim(1, Array(0)), // 0: Idle
+    Anim(0.40, Array(1, 2, 3, 4)), // 1: Walk
+    Anim(0.20, Array(1, 2, 3, 4)), // 2: Run
+    Anim(0.25, Array(0, 5, 5, 5)), // 3: Attack prepare
+    Anim(0.25, Array(5, 0, 0, 0)) // 4: Attack
   )
 
   // State definitions
   // [0: anim_index, 1: speed, 2: next_state_update, 3: next_state]
   val STATE_IDLE = State(0, 0, 0.1)
-  val STATE_PATROL = State(1, 0.5, 0.5)
-  val STATE_FOLLOW = State(2, 1, 0.3)
-  val STATE_ATTACK_RECOVER = State(0, 0, 0.1, this.STATE_FOLLOW)
-  val STATE_ATTACK_EXEC = State(4, 0, 0.4, this.STATE_ATTACK_RECOVER)
-  val STATE_ATTACK_PREPARE = State(3, 0, 0.4, this.STATE_ATTACK_EXEC)
-  val STATE_ATTACK_AIM = State(0, 0, 0.1, this.STATE_ATTACK_PREPARE)
-  val STATE_EVADE = State(2, 1, 0.8, this.STATE_ATTACK_AIM)
+  var STATE_PATROL = State(1, 0.5, 0.5)
+  var STATE_FOLLOW = State(2, 1, 0.3)
+  var STATE_ATTACK_RECOVER = State(0, 0, 0.1, this.STATE_FOLLOW)
+  var STATE_ATTACK_EXEC = State(4, 0, 0.4, this.STATE_ATTACK_RECOVER)
+  var STATE_ATTACK_PREPARE = State(3, 0, 0.4, this.STATE_ATTACK_EXEC)
+  var STATE_ATTACK_AIM = State(0, 0, 0.1, this.STATE_ATTACK_PREPARE)
+  var STATE_EVADE = State(2, 1, 0.8, this.STATE_ATTACK_AIM)
 
   this.size = vec3(12, 28, 12)
   this.step_height = 17
   this.keep_off_ledges = true
   this.check_against = Entity.ENTITY_GROUP_PLAYER
 
-  val speed = 196
-  val attack_distance = 800
-  val evade_distance = 96
-  val attack_chance = 0.65
+  var speed = 196
+  var attack_distance = 800
+  var evade_distance = 96
+  var attack_chance = 0.65
 
-  var state : State = STATE_IDLE
+  var state: State = STATE_IDLE
   var state_update_at = 0d
   var target_yaw = this.yaw
   var turn_bias = 1d
 
+  var needs_key = false
 
-  def init(patrol_dir: Double) = {
 
-    game_entities_enemies.addOne(this)
-    // If patrol_dir is non-zero it determines the partrol direction in
-    // increments of 90°. Otherwise we just idle.
-    if (patrol_dir!=0) {
-      this.set_state(this.STATE_PATROL)
-      this.target_yaw = Math.PI / 2 * patrol_dir
-      this.anim_time = Math.random()
-    } else {
-      this.set_state(this.STATE_IDLE)
-    }
+  game_entities_enemies.addOne(this)
+  // If patrol_dir is non-zero it determines the partrol direction in
+  // increments of 90°. Otherwise we just idle.
+  if (patrol_dir != 0) {
+    this.set_state(this.STATE_PATROL)
+    this.target_yaw = Math.PI / 2 * patrol_dir
+    this.anim_time = Math.random()
+  } else {
+    this.set_state(this.STATE_IDLE)
   }
 
   def set_state(state: State) = {
@@ -74,13 +73,13 @@ abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
       this.turn_bias = if (Math.random() > 0.5) 0.5 else -0.5
       val distance_to_player = vec3_dist(this.pos, game_entity_player.pos)
       val angle_to_player = vec3_2d_angle(this.pos, game_entity_player.pos)
-      if (this.state.next_state!=null) {
+      if (this.state.next_state != null) {
         this.set_state(this.state.next_state)
       }
       // Try to minimize distance to the player
       if (this.state == this.STATE_FOLLOW) {
         // Do we have a line of sight?
-        if (map_trace(this.pos, game_entity_player.pos)==null) {
+        if (map_trace(this.pos, game_entity_player.pos) == null) {
           this.target_yaw = angle_to_player
         }
         // Are we close enough to attack?
@@ -103,7 +102,7 @@ abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
       // Wake up from patroling or idlyng if we have a line of sight
       // and are near enough
       if (this.state == this.STATE_PATROL || this.state == this.STATE_IDLE) {
-        if (distance_to_player < 700 && map_trace(this.pos, game_entity_player.pos)==null) {
+        if (distance_to_player < 700 && map_trace(this.pos, game_entity_player.pos) == null) {
           this.set_state(this.STATE_ATTACK_AIM)
         }
       }
@@ -112,7 +111,7 @@ abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
       if (this.state == this.STATE_ATTACK_AIM) {
         this.target_yaw = angle_to_player
         // No line of sight? Randomly shuffle around :/
-        if (map_trace(this.pos, game_entity_player.pos)==null) {
+        if (map_trace(this.pos, game_entity_player.pos) == null) {
           this.set_state(this.STATE_EVADE)
         }
       }
@@ -131,9 +130,9 @@ abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
     this.draw_model()
   }
 
-  def attack() : Unit
+  def attack(): Unit
 
-  def spawn_projectile(entity_name: String, speed: Double, yaw_offset: Double, pitch_offset: Double) = {
+  def spawn_projectile(entity_name: String, speed: Double, yaw_offset: Double, pitch_offset: Double) : Entity = {
     val projectile = game_spawn(entity_name, this.pos)
     projectile.check_against = Entity.ENTITY_GROUP_PLAYER
     projectile.yaw = this.yaw + Math.PI / 2
@@ -161,7 +160,7 @@ abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
     game_entities_enemies = game_entities_enemies.filter((e: Entity) => e != this)
   }
 
-  override def did_collide(axis: Double) : Unit = {
+  override def did_collide(axis: Double): Unit = {
     if (axis == 1) {
       return
     }
@@ -174,5 +173,4 @@ abstract class EntityEnemy(pos: Vec3, p1: Any, p2: Any) extends Entity(pos) {
   }
 
 }
-
 

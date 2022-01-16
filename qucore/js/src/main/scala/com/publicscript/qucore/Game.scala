@@ -28,7 +28,7 @@ object Game {
   var game_real_time_last: Double = _
   var game_message_timeout : SetTimeoutHandle = _
   var game_entities = new ArrayBuffer[Entity](0)
-  var game_entity_player: Entity = _
+  var game_entity_player: EntityPlayer = _
 
 
   var game_entities_enemies = new ArrayBuffer[Entity](0)

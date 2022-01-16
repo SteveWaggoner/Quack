@@ -43,6 +43,7 @@ object Main {
   // Projectiles
   val model_grenade : Model.Model = null
   val model_plasma : Model.Model = null // aka. nail
+  val model_nail = model_plasma
 
   // Sounds
   val sfx_enemy_hit : AudioBuffer = null
@@ -66,8 +67,6 @@ object Main {
   val sfx_grenade_explode : AudioBuffer = null
 
 
-
-  var game_time:Int = 0
 
   def getButton(buttonId: String): Option[Button] = {
     val queryResult = document.querySelector(s"#$buttonId")
