@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3}
-import com.publicscript.qucore.Main.{model_nail,model_explosion,sfx_nailgun_hit}
+import com.publicscript.qucore.Resources.{model_nail,model_explosion,sfx_nailgun_hit}
 import com.publicscript.qucore.Game.{game_time,game_spawn}
 
 class EntityProjectileNail(apos:Vec3) extends Entity(apos) {

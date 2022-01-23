@@ -14,11 +14,6 @@ object Entity {
   val ENTITY_GROUP_NONE = 0
   val ENTITY_GROUP_PLAYER = 1
   val ENTITY_GROUP_ENEMY = 2
-
-}
-
-class Entity(var pos: Vec3) {
-
   //Entity Factory
   def apply(entity_name:String, pos:Vec3, data1:Any, data2:Any) : Entity = {
 
@@ -26,7 +21,7 @@ class Entity(var pos: Vec3) {
 
     entity_name match {
       case "player" => new EntityPlayer(pos, data1, data2)
-      case "grunt" => new EntityEnemyGrunt(pos, data1, data2)
+      case "grunt" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
 
       /*
             case 2 => Some(new EntityEnemyEnforcer(p, e.data1, e.data2))
@@ -51,6 +46,11 @@ class Entity(var pos: Vec3) {
   }
 
 
+}
+
+class Entity(var pos: Vec3) {
+
+
 
     case class Anim(var speed:Double, var frame:Array[Int])
 
@@ -63,7 +63,7 @@ class Entity(var pos: Vec3) {
     var veloc = vec3()
     var size = vec3(2, 2, 2)
     var f: Double = 0
-    var health: Int = 50
+    var health: Double = 50
     var dead: Boolean = false
     var die_at: Double = 0
     var step_height: Double = 0
@@ -181,11 +181,11 @@ class Entity(var pos: Vec3) {
     }
 
     def did_collide(axis: Double) = {
-      false
+   //   false
     }
 
     def did_collide_with_entity(other: Entity) = {
-      false
+   //   false
     }
 
     def draw_model() = {

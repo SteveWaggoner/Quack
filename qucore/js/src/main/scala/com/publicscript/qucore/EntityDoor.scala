@@ -2,7 +2,7 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,scale,vec3_add,vec3_clone,vec3_rotate_y}
 import com.publicscript.qucore.Game.{game_entities_enemies,game_entities_friendly,game_time,game_map_index,game_entity_player,game_show_message,game_tick}
-import com.publicscript.qucore.Main.{model_door}
+import com.publicscript.qucore.Resources.{model_door}
 
 
 class EntityDoor(apos:Vec3, tex:Int, dir:Double) extends Entity(apos) {
@@ -17,7 +17,7 @@ class EntityDoor(apos:Vec3, tex:Int, dir:Double) extends Entity(apos) {
     var open = false
     // Map 1 only has one door and it needs a key. Should be a flag
     // in the entity data instead :/
-    val needs_key = game_map_index == 1
+    needs_key = game_map_index == 1
     // Doors block enemies and players
     game_entities_enemies.addOne(this)
     game_entities_friendly.addOne(this)

@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
-import com.publicscript.qucore.Main.{model_gib,sfx_enemy_hit}
+import com.publicscript.qucore.Resources.{model_gib,sfx_enemy_hit}
 import com.publicscript.qucore.Game.{game_time}
 
 class EntityProjectileGib(apos:Vec3) extends Entity(apos) {

@@ -1,12 +1,14 @@
 package com.publicscript.qucore
 
+import com.publicscript.qucore.Audio.audio_ctx
+
 import scala.scalajs.js.typedarray.Uint8Array
 import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_add, vec3_length, vec3_mulf, vec3_normalize, vec3_sub}
-import com.publicscript.qucore.Render.{r_push_block,r_draw}
-import com.publicscript.qucore.Game.{game_spawn}
+import com.publicscript.qucore.Render.{r_draw, r_push_block}
+import com.publicscript.qucore.Game.game_spawn
 import com.publicscript.qucore.{Entity, EntityPlayer}
-
 import org.scalajs.dom
+import org.scalajs.dom.{AudioBuffer, html}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{Await, Future}
@@ -51,7 +53,7 @@ object Map {
   case class MapRender (b:Int,t:Int)
   case class MapData(cm:Uint8Array,e:Array[MapEntity],r:Array[MapRender])
   // Entity Id to class - must be consistent with map_packer.c line ~900
-  val id_to_entity_name = Map(0 -> "player", 1 -> "grunt")
+  val id_to_entity_name = scala.collection.immutable.Map[Int,String](0 -> "player", 1 -> "grunt")
 
   def parse_map_container(data: Uint8Array): Array[MapData] = {
 
@@ -97,11 +99,9 @@ object Map {
         for (cz <- z until z + sz) {
           for (cy <- y until y + sy) {
             for (cx <- x until x + sx) {
-              cm(
-                ( cz * map_size * map_size +
-                  cy * map_size +
-                  cx ) >> 3
-              ) |= 1 << (cx & 7)
+              val cm_ndx = ( (cz * map_size * map_size) + (cy * map_size) + cx ) >> 3
+              val bit_val = 1 << (cx & 7)
+              cm(cm_ndx) = (cm(cm_ndx) | bit_val).toShort
             }
           }
         }
@@ -134,16 +134,54 @@ object Map {
     maps.toArray
   }
 
-  def map_load_container_async(url: String): Future[Array[MapData]] = {
+/*
+  import scala.concurrent.Future
+  def audio_load_url_async(url:String): Future[AudioBuffer] = {
 
     import js.Thenable.Implicits._
+
+    val responseAudioBuffer = for {
+      response <- dom.fetch(url)
+      arrayBuffer <- response.arrayBuffer()
+      audioBuffer <- audio_ctx.decodeAudioData(arrayBuffer)
+    } yield {
+      audioBuffer
+    }
+
+    responseAudioBuffer
+  }
+  */
+
+  def updatePre(pre: html.Pre) = {
+    import scala.concurrent
+    .ExecutionContext
+    .Implicits
+    .global
+    import js.Thenable.Implicits._
+    val url =
+      "https://www.boredapi.com/api/activity"
+    val responseText = for {
+      response <- dom.fetch(url)
+      text <- response.text()
+    } yield {
+      text
+    }
+    for (text <- responseText)
+      pre.textContent = text
+  }
+
+
+  import scala.concurrent.Future
+  def map_load_container_async(url: String): Future[Array[MapData]] = {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import js.Thenable.Implicits.thenable2future
 
     val responseMaps = for {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
-      maps <- parse_map_container(new Uint8Array(arrayBuffer))
     } yield {
-      maps
+      parse_map_container(new Uint8Array(arrayBuffer))
     }
 
     responseMaps

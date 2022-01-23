@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,vec3_2d_angle,vec3
 import com.publicscript.qucore.Game.{game_time,game_entities_enemies,game_entity_player,game_spawn}
 import com.publicscript.qucore.Map.{map_trace}
 
-import com.publicscript.qucore.Main.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
+import com.publicscript.qucore.Resources.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
 
 abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
 
@@ -45,7 +45,7 @@ abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
   var target_yaw = this.yaw
   var turn_bias = 1d
 
-  var needs_key = false
+  needs_key = false
 
 
   game_entities_enemies.addOne(this)

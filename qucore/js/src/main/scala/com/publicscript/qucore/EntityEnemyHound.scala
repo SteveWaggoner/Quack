@@ -2,7 +2,7 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.Entity.{ENTITY_GROUP_PLAYER}
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_rotate_y}
-import com.publicscript.qucore.Main.{model_hound,sfx_enemy_hound_attack}
+import com.publicscript.qucore.Resources.{model_hound,sfx_enemy_hound_attack}
 import scala.scalajs.js.timers._
 
 class EntityEnemyHound(apos:Vec3,apatrol_dir:Double) extends EntityEnemy(apos,apatrol_dir) {

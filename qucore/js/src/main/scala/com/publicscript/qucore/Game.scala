@@ -6,7 +6,7 @@ import com.publicscript.qucore.MathUtils.{Vec3, vec3}
 
 import scala.collection.mutable.ArrayBuffer
 
-import com.publicscript.qucore.Main.map_data
+import com.publicscript.qucore.Resources.map_data
 import com.publicscript.qucore.Document.msg
 
 import com.publicscript.qucore.Render.{r_prepare_frame,r_end_frame,r_camera,r_camera_yaw,r_camera_pitch}

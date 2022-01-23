@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_mulf,vec3_sub}
-import com.publicscript.qucore.Main.{model_torch}
+import com.publicscript.qucore.Resources.{model_torch}
 import com.publicscript.qucore.Game.{game_time,game_spawn}
 import com.publicscript.qucore.Render.r_push_light
 import com.publicscript.qucore.Map.map_line_of_sight

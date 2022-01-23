@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
-import com.publicscript.qucore.Main.{model_zombie,sfx_enemy_hit}
+import com.publicscript.qucore.Resources.{model_zombie,sfx_enemy_hit}
 
 
 class EntityEnemyZombie(apos:Vec3,apatrol_dir:Double) extends EntityEnemy(apos,apatrol_dir) {

@@ -3,7 +3,7 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_add, vec3_length, vec3_mulf, vec3_rotate_y, vec3_rotate_yaw_pitch}
 import com.publicscript.qucore.Game.{game_entities_friendly, game_entity_player, game_init, game_map_index, game_spawn, game_time, title_show_message}
 import com.publicscript.qucore.Audio.audio_play
-import com.publicscript.qucore.Main.{sfx_hurt, sfx_no_ammo}
+import com.publicscript.qucore.Resources.{sfx_hurt, sfx_no_ammo}
 import com.publicscript.qucore.Render.{r_camera, r_camera_pitch, r_camera_yaw, r_draw}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 import com.publicscript.qucore.Input.{key_action, key_down, key_jump, key_left, key_next, key_prev, key_right, key_up, mouse_x, mouse_y}

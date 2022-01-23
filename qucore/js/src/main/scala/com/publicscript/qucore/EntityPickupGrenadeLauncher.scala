@@ -1,6 +1,6 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.Main.{model_pickup_grenadelauncher, sfx_pickup}
+import com.publicscript.qucore.Resources.{model_pickup_grenadelauncher, sfx_pickup}
 import com.publicscript.qucore.Audio.audio_play
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Game.game_entity_player

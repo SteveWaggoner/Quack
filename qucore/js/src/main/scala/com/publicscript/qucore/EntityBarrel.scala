@@ -2,7 +2,7 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,scale,vec3_add}
 import com.publicscript.qucore.Game.{game_entities_enemies,game_spawn,game_time}
-import com.publicscript.qucore.Main.{model_barrel,sfx_grenade_explode,model_gib_pieces}
+import com.publicscript.qucore.Resources.{model_barrel,sfx_grenade_explode,model_gib_pieces}
 
 class EntityBarrel(pos:Vec3) extends Entity(pos) {
 

@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3}
-import com.publicscript.qucore.Main.{model_enforcer,sfx_plasma_shoot}
+import com.publicscript.qucore.Resources.{model_enforcer,sfx_plasma_shoot}
 
 
 class EntityEnemyEnforcer(apos:Vec3, apatrol_dir:Double) extends EntityEnemy(apos, apatrol_dir) {

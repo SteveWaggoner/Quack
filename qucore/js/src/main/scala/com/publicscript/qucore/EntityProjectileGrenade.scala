@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_dist,scale}
-import com.publicscript.qucore.Main.{model_explosion,model_grenade,sfx_grenade_bounce,sfx_grenade_explode}
+import com.publicscript.qucore.Resources.{model_explosion,model_grenade,sfx_grenade_bounce,sfx_grenade_explode}
 import com.publicscript.qucore.Game.{game_time,game_spawn}
 import com.publicscript.qucore.Render.{r_push_light}
 

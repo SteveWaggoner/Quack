@@ -2,7 +2,7 @@ package com.publicscript.qucore
 
 import org.scalajs.dom.document
 import org.scalajs.dom.{KeyboardEvent, MouseEvent}
-import com.publicscript.qucore.Main.game_time
+import com.publicscript.qucore.Game.game_time
 import org.scalajs.dom.html.Canvas
 
 
@@ -20,14 +20,14 @@ object Input {
 
   def dump() = {
     var ret = ""
-    if (key_up==1) ret += "[key_up]"
-    if (key_down==1) ret += "[key_down]"
-    if (key_left==1) ret += "[key_left]"
-    if (key_right==1) ret += "[key_right]"
-    if (key_prev==1) ret += "[key_prev]"
-    if (key_next==1) ret += "[key_next]"
-    if (key_action==1) ret += "[key_action]"
-    if (key_jump==1) ret += "[key_jump]"
+    if (key_up==true) ret += "[key_up]"
+    if (key_down==true) ret += "[key_down]"
+    if (key_left==true) ret += "[key_left]"
+    if (key_right==true) ret += "[key_right]"
+    if (key_prev==true) ret += "[key_prev]"
+    if (key_next==true) ret += "[key_next]"
+    if (key_action==true) ret += "[key_action]"
+    if (key_jump==true) ret += "[key_jump]"
 
     ret += s" mouse_x=$mouse_x, mouse_y=$mouse_y  last_wheel_event=$last_wheel_event"
     println(ret)

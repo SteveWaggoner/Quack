@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_rotate_yaw_pit
 import com.publicscript.qucore.Audio.audio_play
 import com.publicscript.qucore.Game.{game_spawn}
 
-import com.publicscript.qucore.Main.{model_shotgun,sfx_shotgun_shoot,sfx_shotgun_reload,model_nailgun,sfx_nailgun_shoot,model_grenadelauncher,sfx_grenade_shoot}
+import com.publicscript.qucore.Resources.{model_shotgun,sfx_shotgun_shoot,sfx_shotgun_reload,model_nailgun,sfx_nailgun_shoot,model_grenadelauncher,sfx_grenade_shoot}
 
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 

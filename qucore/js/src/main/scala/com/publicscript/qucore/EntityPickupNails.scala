@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
-import com.publicscript.qucore.Main.{sfx_pickup}
+import com.publicscript.qucore.Resources.{sfx_pickup}
 import com.publicscript.qucore.Audio.{audio_play}
 import com.publicscript.qucore.Game.{game_entity_player}
 

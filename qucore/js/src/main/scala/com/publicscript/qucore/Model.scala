@@ -69,14 +69,15 @@ object Model {
 
   def model_load_container_async(url: String): Future[Array[RmfModel]] = {
 
+    import scala.concurrent.ExecutionContext.Implicits.global
+    import js.Thenable.Implicits.thenable2future
     import js.Thenable.Implicits._
 
     val responseModels = for {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
-      models <- parse_model_container(new Uint8Array(arrayBuffer))
     } yield {
-      models
+      parse_model_container(new Uint8Array(arrayBuffer))
     }
 
     responseModels
@@ -92,9 +93,9 @@ object Model {
   }
 
   case class UV(u: Double, v: Double)
-  case class Model(f: Array[Int], nv: Int)
+  case class Model(f: Array[Int], var nv: Int)
 
-  def model_init(model: RmfModel, sx: Float = 1, sy: Float = 1, sz: Float = 1) = {
+  def model_init(model: RmfModel, sx: Double = 1, sy: Double = 1, sz: Double = 1) : Model = {
     // Load header, prepare buffers
     var j = 0
 
@@ -112,9 +113,9 @@ object Model {
     var i = 0
     for (j <- 0 until model.vertices.length) {
 
-      vertices(i + 0) = (model.vertices(j).x.toFloat - 15) * sx
-      vertices(i + 1) = (model.vertices(j).y.toFloat - 15) * sy
-      vertices(i + 2) = (model.vertices(j).z.toFloat - 15) * sz
+      vertices(i + 0) = (model.vertices(j).x.toFloat - 15) * sx.toFloat
+      vertices(i + 1) = (model.vertices(j).y.toFloat - 15) * sy.toFloat
+      vertices(i + 2) = (model.vertices(j).z.toFloat - 15) * sz.toFloat
 
       // Find min/max only for the first frame
       if (i < model.num_vertices * 3) {
@@ -128,7 +129,10 @@ object Model {
     }
 
     // Load indices, 1x 2bit increment, 2x 7bit absolute
-    for (j <- 0 until model.num_indices) {
+    val frames = new ArrayBuffer[Int](0)
+
+    for (j <- 0 until model.num_indices)
+    {
       index_increment += model.indices(j).a_address_inc
 
       indices(i + 0) = index_increment.toShort
@@ -143,7 +147,6 @@ object Model {
 
       // Compute normals for each frame and face and submit to render buffer.
       // Capture the current vertex offset for the first vertex of each frame.
-      val frames = new ArrayBuffer[Int](0)
       for (frame_index <- 0 until model.num_frames) {
 
         frames.addOne(r_num_verts)
@@ -158,7 +161,7 @@ object Model {
           for (face_vertex <- 0 to 2) {
             val idx = indices(i + face_vertex) * 3
             mv(face_vertex) = vec3(vertices(vertex_offset + idx + 0), vertices(vertex_offset + idx + 1), vertices(vertex_offset + idx + 2))
-            uv(face_vertex) = new UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
+            uv(face_vertex) = UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
           }
 
           val n = vec3_face_normal(mv(2), mv(1), mv(0))
@@ -167,11 +170,12 @@ object Model {
           r_push_vert(mv(0), n, uv(0).u, uv(0).v)
         }
       }
-      new Model(
-        f = frames.toArray,
-        nv = model.num_indices * 3
-      )
+
     }
+    new Model(
+      f = frames.toArray,
+      nv = model.num_indices * 3
+    )
   }
 }
 

@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3_add,vec3}
-import com.publicscript.qucore.Main.{model_nail,model_explosion,sfx_nailgun_hit}
+import com.publicscript.qucore.Resources.{model_nail,model_explosion,sfx_nailgun_hit}
 import com.publicscript.qucore.Game.{game_time,game_spawn}
 import com.publicscript.qucore.Render.r_push_light
 

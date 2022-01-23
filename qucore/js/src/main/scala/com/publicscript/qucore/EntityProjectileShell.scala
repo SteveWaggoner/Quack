@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3}
-import com.publicscript.qucore.Main.{model_explosion}
+import com.publicscript.qucore.Resources.{model_explosion}
 import com.publicscript.qucore.Game.{game_time,game_spawn}
 
 class EntityProjectileShell(apos:Vec3) extends Entity(apos) {

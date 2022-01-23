@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist}
-import com.publicscript.qucore.Main.{model_pickup_box,sfx_enemy_hit}
+import com.publicscript.qucore.Resources.{model_pickup_box,sfx_enemy_hit}
 import com.publicscript.qucore.Game.{game_entity_player}
 
 
