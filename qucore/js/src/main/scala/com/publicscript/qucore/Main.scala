@@ -1,6 +1,11 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.Audio.{Instrument, Track}
+import com.publicscript.qucore.Map.{ map_load_container_async}
+import com.publicscript.qucore.Render.{r_create_texture, r_init}
+import com.publicscript.qucore.Resources.map_data
+import com.publicscript.qucore.TTT.ttt
+import com.publicscript.qucore.Textures.texture_data
 import org.scalajs.dom.{MouseEvent, document}
 import org.scalajs.dom.html.Button
 
@@ -23,6 +28,23 @@ object Main {
     println(s"Using Scala.js version ${System.getProperty("java.vm.version")}")
 
     println("Let's yodel....")
+
+    getButton("load_maps").get.onclick = (e:MouseEvent) => {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      map_load_container_async("classes/build/levels").onComplete {
+        result => Resources.map_data = result.get
+      }
+
+    //  Audio.audio_init()
+    //  Audio.audio_play_async(Audio.audio_load_url_async("https://s3-us-west-2.amazonaws.com/s.cdpn.io/123941/Yodel_Sound_Effect.mp3"))
+      }
+    getButton("load_models").get.onclick = (e:MouseEvent) => {
+      Audio.audio_init()
+      Audio.audio_play_async(Audio.audio_load_url_async("https://s3-us-west-2.amazonaws.com/s.cdpn.io/123941/Yodel_Sound_Effect.mp3"))
+    }
+
+
+
 
     getButton("yodel").get.onclick = (e:MouseEvent) => {
       Audio.audio_init()

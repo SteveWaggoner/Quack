@@ -116,7 +116,9 @@ object TTT {
         val alpha = d(i + 5).asInstanceOf[Double]
 
         c.globalAlpha = alpha / 15
-        texture_index < td.length && stack_depth < 16 && c.drawImage(ttt(td, texture_index, stack_depth + 1)(0), x, y, width, height).asInstanceOf[Boolean]
+        if ( texture_index < td.length && stack_depth < 16 ) {
+          c.drawImage(ttt(td, texture_index, stack_depth + 1)(0), x, y, width, height)
+        }
         c.globalAlpha = 1
         return 6
       }

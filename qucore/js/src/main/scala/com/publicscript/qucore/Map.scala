@@ -187,7 +187,7 @@ object Map {
     responseMaps
   }
 
-
+/*
   def map_load_container (path:String): Array[MapData] = {
 
     val futureMaps = map_load_container_async(path)
@@ -195,7 +195,7 @@ object Map {
     val maps = Await.ready(futureMaps, Duration.Inf).value.get.get
     return maps
   }
-
+*/
   def map_init(m: MapData) = {
     val map = m
 

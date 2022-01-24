@@ -83,7 +83,7 @@ object Model {
     responseModels
   }
 
-
+/*
   def model_load_container (path:String): Array[RmfModel] = {
 
     val futureModels = model_load_container_async(path)
@@ -91,7 +91,7 @@ object Model {
     val models = Await.ready(futureModels, Duration.Inf).value.get.get
     return models
   }
-
+*/
   case class UV(u: Double, v: Double)
   case class Model(f: Array[Int], var nv: Int)
 

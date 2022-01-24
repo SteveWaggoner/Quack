@@ -5,7 +5,7 @@ import org.scalajs.dom.{HTMLCanvasElement, HTMLDivElement, HTMLInputElement, doc
 
 object Document {
 
-  val c : HTMLCanvasElement = null
+  val c : HTMLCanvasElement = document.querySelector("#c").asInstanceOf[HTMLCanvasElement]
   val ts : HTMLDivElement = null
   val m : HTMLInputElement = null
   val mi : HTMLInputElement = null

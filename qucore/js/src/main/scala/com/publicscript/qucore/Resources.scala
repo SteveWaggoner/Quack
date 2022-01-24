@@ -12,8 +12,8 @@ import com.publicscript.qucore.Document._
 import com.publicscript.qucore.Render.{r_init,r_create_texture}
 import com.publicscript.qucore.TTT.ttt
 import com.publicscript.qucore.Textures.texture_data
-import com.publicscript.qucore.Map.map_load_container
-import com.publicscript.qucore.Model.model_load_container
+//import com.publicscript.qucore.Map.map_load_container
+//import com.publicscript.qucore.Model.model_load_container
 import org.scalajs.dom.window.requestAnimationFrame
 
 import scala.collection.mutable.ArrayBuffer
@@ -86,16 +86,14 @@ object Resources {
 
   def game_load() = {
 
-
-
     r_init()
 
     // Create textures
     ttt(texture_data).map(r_create_texture)
 
     // Load map & model containers
-    map_data = map_load_container("build/l")
-    model_data = model_load_container("build/m")
+//    map_data = map_load_container("classes/build/levels")
+//    model_data = model_load_container("classes/build/model")
 
     // Create models. Many models share the same geometry just with different
     // sizes and textures.
