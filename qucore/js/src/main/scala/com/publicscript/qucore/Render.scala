@@ -230,7 +230,13 @@ object Render {
   }
 
   def r_push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
+
+    println("r_push_block a")
+
     val canvas = r_textures(texture).c
+
+    println("r_push_block b")
+
     val index = r_num_verts
     val tx = sx / canvas.width
     val ty = sy / canvas.height
@@ -243,12 +249,18 @@ object Render {
     val v5 = vec3(x + sx, y, z + sz)
     val v6 = vec3(x, y, z)
     val v7 = vec3(x + sx, y, z)
+
+    println("r_push_block c")
+
     r_push_quad(v0, v1, v2, v3, tx, tz) // top
     r_push_quad(v4, v5, v6, v7, tx, tz) // bottom
     r_push_quad(v2, v3, v4, v5, tx, ty) // front
     r_push_quad(v1, v0, v7, v6, tx, ty) // back
     r_push_quad(v3, v1, v5, v7, tz, ty) // right
     r_push_quad(v0, v2, v6, v4, tz, ty) // left
+
+    println("r_push_block d")
+
     index
   }
 

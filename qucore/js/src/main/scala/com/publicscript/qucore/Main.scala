@@ -30,10 +30,18 @@ object Main {
     println("Let's yodel....")
 
     getButton("load_maps").get.onclick = (e:MouseEvent) => {
+
+      r_init()
+
+      // Create textures
+      ttt(texture_data).map(r_create_texture)
+
       import scala.concurrent.ExecutionContext.Implicits.global
-      map_load_container_async("classes/build/levels").onComplete {
+      println("before map_load_container_async")
+      map_load_container_async("js/target/scala-2.13/classes/build/levels").onComplete {
         result => Resources.map_data = result.get
       }
+      println("after map_load_container_async")
 
     //  Audio.audio_init()
     //  Audio.audio_play_async(Audio.audio_load_url_async("https://s3-us-west-2.amazonaws.com/s.cdpn.io/123941/Yodel_Sound_Effect.mp3"))

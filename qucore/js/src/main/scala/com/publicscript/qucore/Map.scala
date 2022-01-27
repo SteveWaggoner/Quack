@@ -53,13 +53,36 @@ object Map {
   case class MapRender (b:Int,t:Int)
   case class MapData(cm:Uint8Array,e:Array[MapEntity],r:Array[MapRender])
   // Entity Id to class - must be consistent with map_packer.c line ~900
-  val id_to_entity_name = scala.collection.immutable.Map[Int,String](0 -> "player", 1 -> "grunt")
+  val id_to_entity_name = scala.collection.immutable.Map[Int,String](
+    0 -> "player",
+    1 -> "grunt",
+    2 -> "enforcer",
+    3 -> "ogre",
+    4 -> "zombie",
+    5 -> "hound",
+    6 -> "nailgun",
+    7 -> "grenadelauncher",
+    8 -> "health",
+    9 -> "nails",
+    10-> "grenades",
+    11-> "barrel",
+    12->"light",
+    13->"trigger_level",
+    14->"door",
+    15->"pickup_key",
+    16->"torch"
+  )
 
   def parse_map_container(data: Uint8Array): Array[MapData] = {
+
+    println("start parse_map_container "+data)
 
     val maps = new ArrayBuffer[MapData](0)
     var i = 0
     while (i < data.length) {
+
+      println("in while " + i)
+
 
       val blocks_size = data(i+0) | (data(i+1) << 8)
       i += 2
@@ -72,12 +95,17 @@ object Map {
       var j = i
       while (j < i + blocks_size) {
 
+        println("in while j " + j)
+
+
         // First value is either the x coordinate or a texture change
         // sentinel value (255) followed by the texture index
         if (data(j+0) == 255) {
           t = data(j+1)
           j += 2
         }
+
+        println("aa")
 
         val x = data(j+0)
         val y = data(j+1)
@@ -88,12 +116,16 @@ object Map {
 
         j += 6
 
+
+        println("bb")
+
         // Submit the block to the render buffer; we get the vertex offset
         // of this block within the buffer back, so we can draw it later
         val b = r_push_block(x << 5, y << 4, z << 5,
           sx << 5, sy << 4, sz << 5,
           t)
 
+        println("cc")
 
         // The collision map is a bitmap; 8 x blocks per byte
         for (cz <- z until z + sz) {
@@ -106,31 +138,50 @@ object Map {
           }
         }
 
+        println("c")
+
+
         r.addOne(MapRender(t=t, b=b))
       }
 
       i += blocks_size
+
+      println("d")
+
 
       // Slice of entity data; we parse it when we actually spawn
       // the entities in map_init()
       val num_entities = data(i + 0) | (data(i + 1) << 8)
       i += 2
 
+      println("d2")
+
 
       val e = new ArrayBuffer[MapEntity](0)
       var k = i
       while (k < i + num_entities * 6 /*sizeof(entity_t)*/) {
 
+        println("d3 " + k)
+
+
         val ee = new MapEntity(entity_name = id_to_entity_name(data(k+0)), x = data(k+1), y = data(k+2), z = data(k+3), data1 = data(k+4), data2 = data(k+5))
+
+        println("d4")
+
+
         e.addOne(ee)
         k += 6
       }
 
       i += num_entities * 6
 
+      println("e")
+
 
       maps.addOne(MapData(cm = cm, e.toArray, r.toArray))
     }
+
+    println("end parse_map_container")
     maps.toArray
   }
 
@@ -176,14 +227,15 @@ object Map {
 
     import scala.concurrent.ExecutionContext.Implicits.global
     import js.Thenable.Implicits.thenable2future
-
+    println("start. map_load_container_async "+url)
     val responseMaps = for {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
     } yield {
+      println("yield in map_load_container_async")
       parse_map_container(new Uint8Array(arrayBuffer))
     }
-
+    println("done. map_load_container_async")
     responseMaps
   }
 

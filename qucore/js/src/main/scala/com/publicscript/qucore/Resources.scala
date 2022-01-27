@@ -12,7 +12,7 @@ import com.publicscript.qucore.Document._
 import com.publicscript.qucore.Render.{r_init,r_create_texture}
 import com.publicscript.qucore.TTT.ttt
 import com.publicscript.qucore.Textures.texture_data
-//import com.publicscript.qucore.Map.map_load_container
+import com.publicscript.qucore.Map.map_load_container_async
 //import com.publicscript.qucore.Model.model_load_container
 import org.scalajs.dom.window.requestAnimationFrame
 
@@ -92,7 +92,10 @@ object Resources {
     ttt(texture_data).map(r_create_texture)
 
     // Load map & model containers
-//    map_data = map_load_container("classes/build/levels")
+    import scala.concurrent.ExecutionContext.Implicits.global
+    map_load_container_async("js/target/scala-2.13/classes/build/levels").onComplete {
+      result => Resources.map_data = result.get
+    }
 //    model_data = model_load_container("classes/build/model")
 
     // Create models. Many models share the same geometry just with different
@@ -209,6 +212,6 @@ object Resources {
     requestAnimationFrame(Game.game_run _)
   }
 
-  game_load()
+//  game_load()
 
 }

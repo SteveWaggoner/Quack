@@ -17,3 +17,9 @@ To try it out, launch sbt and type:
 
 More information can be found in the
 [Scala.js documentation](https://www.scala-js.org/doc/project/cross-build.html) and in the [sbt-crossproject](https://github.com/portable-scala/sbt-crossproject) plugin documentation.
+
+
+
+[01:07:05] admin@dell~/myGithub/Quack/qucore$ python -m SimpleHTTPServer 8000
+
+http://127.0.0.1:8000/index-dev.html
