@@ -40,6 +40,8 @@ object Game {
 
   def game_init(map_index: Int) = {
     {
+      println(ts)
+
       ts.style.display = "none"
       game_entities.clear()
     }
