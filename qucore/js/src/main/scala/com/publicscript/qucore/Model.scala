@@ -32,6 +32,7 @@ object Model {
     } rmf_data;
   */
 
+
   def parse_model_container(data: Uint8Array): Array[RmfModel] = {
 
     val models = new ArrayBuffer[RmfModel](0)
@@ -48,6 +49,9 @@ object Model {
       val verts = new ArrayBuffer[RmfVert](0)
       for (j <- 0 until num_frames * num_verts) {
         val vert = new RmfVert(data(i + 0), data(i + 1), data(i + 2))
+
+        println( " model="+models.length+"  vert "+j+"  "+vert)
+
         verts.addOne(vert)
         i += 3
       }
@@ -55,6 +59,9 @@ object Model {
       val indices = new ArrayBuffer[RmfIndices](0)
       for (j <- 0 until num_indices) {
         val indice = new RmfIndices(data(i + 0), data(i + 1), data(i + 2))
+
+        println( " indice="+indices.length+"  indice "+j+"  "+indice)
+
         indices.addOne(indice)
         i += 3
       }
@@ -111,6 +118,12 @@ object Model {
     var max_y = -16f
 
     var i = 0
+
+    val before_r_num_verts = r_num_verts
+
+    println(" model_init() model.vertices = "+model.vertices)
+
+
     for (j <- 0 until model.vertices.length) {
 
       vertices(i + 0) = (model.vertices(j).x.toFloat - 15) * sx.toFloat
@@ -131,47 +144,70 @@ object Model {
     // Load indices, 1x 2bit increment, 2x 7bit absolute
     val frames = new ArrayBuffer[Int](0)
 
-    for (j <- 0 until model.num_indices)
-    {
+
+    i=0
+    println(" model.num_indices = " + model.num_indices)
+    for (j <- 0 until model.num_indices) {
+
+      println(" model.indices("+j+") = "+model.indices(j))
+
       index_increment += model.indices(j).a_address_inc
 
       indices(i + 0) = index_increment.toShort
       indices(i + 1) = model.indices(j).b_index.toShort
       indices(i + 2) = model.indices(j).c_index.toShort
 
-      // UV coords in texture space and width/height as fraction of model size
-      val uf = 1 / (max_x - min_x)
-      val u = -min_x * uf
-      val vf = -1 / (max_y - min_y)
-      val v = max_y * vf
-
-      // Compute normals for each frame and face and submit to render buffer.
-      // Capture the current vertex offset for the first vertex of each frame.
-      for (frame_index <- 0 until model.num_frames) {
-
-        frames.addOne(r_num_verts)
-
-        val vertex_offset = frame_index * model.num_vertices * 3
-
-        val mv = new Array[Vec3](3)
-        val uv = new Array[UV](3)
-
-        for (i <- 0 until model.num_indices * 3 by 3) {
-
-          for (face_vertex <- 0 to 2) {
-            val idx = indices(i + face_vertex) * 3
-            mv(face_vertex) = vec3(vertices(vertex_offset + idx + 0), vertices(vertex_offset + idx + 1), vertices(vertex_offset + idx + 2))
-            uv(face_vertex) = UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
-          }
-
-          val n = vec3_face_normal(mv(2), mv(1), mv(0))
-          r_push_vert(mv(2), n, uv(2).u, uv(2).v)
-          r_push_vert(mv(1), n, uv(1).u, uv(1).v)
-          r_push_vert(mv(0), n, uv(0).u, uv(0).v)
-        }
-      }
-
+      i += 3
     }
+
+    // UV coords in texture space and width/height as fraction of model size
+    val uf = 1 / (max_x - min_x)
+    val u = -min_x * uf
+    val vf = -1 / (max_y - min_y)
+    val v = max_y * vf
+
+    // Compute normals for each frame and face and submit to render buffer.
+    // Capture the current vertex offset for the first vertex of each frame.
+    for (frame_index <- 0 until model.num_frames) {
+
+      frames.addOne(r_num_verts)
+
+      val vertex_offset = frame_index * model.num_vertices * 3
+
+      val mv = new Array[Vec3](3)
+      val uv = new Array[UV](3)
+
+      for (i <- 0 until model.num_indices * 3 by 3) {
+
+        for (face_vertex <- 0 to 2) {
+          val idx = indices(i + face_vertex) * 3
+
+          println(" i="+i+"  face_vertex="+face_vertex+"  idx="+idx)
+
+          mv(face_vertex) = vec3(vertices(vertex_offset + idx + 0), vertices(vertex_offset + idx + 1), vertices(vertex_offset + idx + 2))
+          uv(face_vertex) = UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
+        }
+
+        val n = vec3_face_normal(mv(2), mv(1), mv(0))
+
+
+        println("mv(2)  "+mv(2))
+        println("mv(1)  "+mv(1))
+        println("mv(0)  "+mv(0))
+
+        println(" n="+n)
+
+
+        r_push_vert(mv(2), n, uv(2).u, uv(2).v)
+        r_push_vert(mv(1), n, uv(1).u, uv(1).v)
+        r_push_vert(mv(0), n, uv(0).u, uv(0).v)
+      }
+    }
+
+
+    val inc_r_num_verts = r_num_verts - before_r_num_verts
+    println(" model_init(): inc_verts="+inc_r_num_verts+" model.num_vertices="+model.num_vertices+", model.num_indices="+model.num_indices+", model.num_frames="+model.num_frames)
+
     new Model(
       f = frames.toArray,
       nv = model.num_indices * 3

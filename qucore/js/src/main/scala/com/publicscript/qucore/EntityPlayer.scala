@@ -38,6 +38,10 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
 
 
   override def update() = {
+
+    println("EntityPlayer: m="+m)
+    println("EntityPlayer: m.value="+m.value)
+
     // Mouse look
     this.pitch = clamp(this.pitch + mouse_y * m.value.toDouble * (if (mi.checked) -0.00015 else 0.00015), -1.5, 1.5)
     this.yaw = (this.yaw + mouse_x * m.value.toDouble * 0.00015) % (Math.PI * 2)
@@ -60,6 +64,11 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     this.weapon_index = (this.weapon_index + key_change + this.weapons.length) % this.weapons.length
     val shoot_wait = this.can_shoot_at - game_time
     val weapon = this.weapons(this.weapon_index)
+
+    println(" weapon = "+weapon)
+    println(" weapon.model = "+weapon.model)
+    println(" com.publicscript.qucore.Resources.model_shotgun = " + com.publicscript.qucore.Resources.model_shotgun)
+
     // Shoot Weapon
     if (key_action && shoot_wait < 0) {
       this.can_shoot_at = game_time + weapon.reload
@@ -73,6 +82,10 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     this.bob += vec3_length(this.accel) * 0.0001
     this.f = if (this.on_ground) 10 else 2.5
     this.update_physics()
+
+    println("EntityPlayer update x")
+
+
     r_camera.x = this.p.x
     r_camera.z = this.p.z
     // Smooth step up on stairs
@@ -82,9 +95,21 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     // Draw weapon at camera position at an offset and add the current
     // recoil (calculated from shoot_wait and weapon._reload) accounting
     // for the current view yaw/pitch
+
+    println("EntityPlayer update y")
+
+    println(" weapon =" +weapon)
+    println(" weapon.model =" +weapon.model)
+
     r_draw(vec3_add(r_camera, vec3_rotate_yaw_pitch(vec3(0, -10 + Math.sin(this.bob) * 0.3, 12 + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)), this.yaw + Math.PI / 2, this.pitch, weapon.texture, weapon.model.f(0), weapon.model.f(0), 0, weapon.model.nv)
+
+    println("EntityPlayer update y")
+
     h.textContent = this.health.toString
     a.textContent = if (weapon.needs_ammo) weapon.ammo.toString else "∞"
+
+    println("EntityPlayer update z")
+
     // Debug: a light around the player
     // r_push_light(vec3_add(this.p, vec3(0,64,0)), 10, 255, 192, 32);
   }

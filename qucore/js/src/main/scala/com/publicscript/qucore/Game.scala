@@ -47,7 +47,10 @@ object Game {
     }
     game_map_index = map_index
 
+
+    println("game_init() map_data = "+map_data)
     map_init(map_data(game_map_index))
+    println("out of game_init()")
   }
 
   def game_next_level() = {
@@ -55,6 +58,7 @@ object Game {
   }
 
   def game_spawn(entity_name:String, pos:Vec3, data1:Any = null, data2:Any = null) : Entity = {
+    println("game_spawn "+entity_name)
     val entity = Entity(entity_name, pos, data1, data2)
     game_entities.addOne(entity)
     entity
@@ -76,7 +80,8 @@ object Game {
   def game_run(time_now_par: Double) : Unit = {
     var time_now = time_now_par
 
-    requestAnimationFrame(game_run)
+ // debug no loop yet
+ //   requestAnimationFrame(game_run)
     time_now *= 0.001
 
     if ( game_real_time_last == 0)

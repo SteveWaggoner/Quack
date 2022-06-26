@@ -19,9 +19,29 @@ object Entity {
 
     // Entity Id to class - must be consistent with map_packer.c line ~900
 
+
+    println("creating a "+entity_name)
+
     entity_name match {
       case "player" => new EntityPlayer(pos, data1, data2)
       case "grunt" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+
+      case "enforcer" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "ogre" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "zombie" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "hound" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "nailgun" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "grenadelauncher" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "health" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "nails" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "grenades" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "barrel" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "light" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "trigger_level" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "door" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "pickupkey" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "torch" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+
 
       /*
             case 2 => Some(new EntityEnemyEnforcer(p, e.data1, e.data2))
@@ -50,7 +70,11 @@ object Entity {
 
 class Entity(var pos: Vec3) {
 
-
+  override def toString: String = {
+    var ret = super.toString
+    ret = ret + s" (pos=${pos.x},${pos.y},${pos.z})"
+    return ret
+  }
 
     case class Anim(var speed:Double, var frame:Array[Int])
 
@@ -109,9 +133,25 @@ class Entity(var pos: Vec3) {
       val original_step_height = this.step_height
       val move_dist = vec3_mulf(this.veloc, game_tick)
       val steps = Math.ceil(vec3_length(move_dist) / 16).toInt
+
+      //debug code ---
+      if ( steps == 0 ) {
+        println("update_physics nothing to move entity="+this)
+
+        println(" veloc ="+this.veloc)
+        println(" game_tick = "+game_tick)
+        println(" move_dist ="+move_dist)
+        println("  vec3_length(move_dist)="+vec3_length(move_dist))
+
+        return
+      }
+      //----
+
       val move_step = vec3_mulf(move_dist, 1 / steps)
       var s = 0
       while (s < steps) {
+
+        println("  s="+s)
         // Remember last position so we can roll back
         val last_pos = vec3_clone(this.pos)
         // Integrate velocity into position
@@ -205,7 +245,9 @@ class Entity(var pos: Vec3) {
 
         mix = 1 - mix
       }
+
       r_draw(pos, yaw, pitch, texture.get, model.get.f(frame_cur), model.get.f(frame_next), mix, model.get.nv)
+
     }
 
     def spawn_particles(amount: Int, speed: Double = 1, model: Model, texture: Int, lifetime: Double) = {

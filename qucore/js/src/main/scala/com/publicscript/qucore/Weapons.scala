@@ -49,6 +49,12 @@ class Weapon {
 
 class WeaponShotgun extends Weapon {
 
+  println(" creating a weaponshotgun model_shotgun="+model_shotgun)
+
+  if (model_shotgun == null) {
+    throw new IllegalArgumentException("oops")
+  }
+
     this.texture = 7
     this.model = model_shotgun
     this.sound = sfx_shotgun_shoot

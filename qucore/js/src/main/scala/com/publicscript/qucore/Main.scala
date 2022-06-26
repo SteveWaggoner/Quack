@@ -1,14 +1,14 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.Audio.{Instrument, Track}
-import com.publicscript.qucore.Map.{ map_load_container_async}
+import com.publicscript.qucore.Document.c
+import com.publicscript.qucore.Map.map_load_container_async
 import com.publicscript.qucore.Render.{r_create_texture, r_init}
 import com.publicscript.qucore.Resources.map_data
 import com.publicscript.qucore.TTT.ttt
 import com.publicscript.qucore.Textures.texture_data
 import org.scalajs.dom.{MouseEvent, document}
 import org.scalajs.dom.html.Button
-
 import com.publicscript.qucore.Render
 import org.scalajs.dom.window.requestAnimationFrame
 
@@ -25,57 +25,85 @@ object Main {
   }
 
 
+  def main_webgl_hello_world(args: Array[String]): Unit = {
+
+    import scalajs.js
+    import scala.scalajs.js.typedarray._
+    import org.scalajs.dom
+
+    var can: dom.html.Canvas = dom.document.createElement("canvas").asInstanceOf[dom.html.Canvas]
+
+    val gl_options = js.Dynamic.literal(antialias = false)
+    val gl = can.getContext("webgl", gl_options) || can.getContext("experimental-webgl", gl_options)
+
+
+        dom.document.body.appendChild(can)
+        can.width = 250
+        can.height = 250
+
+        gl.clearColor(0.4, 0.0, 0.5, 0.8)
+        gl.clear(gl.COLOR_BUFFER_BIT)
+
+        var vShader = gl.createShader(gl.VERTEX_SHADER)
+        var vertText = "attribute vec2 position; void main() {gl_Position = vec4(position, 0, 1);}"
+        gl.shaderSource(vShader, vertText)
+        gl.compileShader(vShader)
+
+        var fShader = gl.createShader(gl.FRAGMENT_SHADER)
+        var fragText = "precision highp float; uniform vec4 color; void main() {gl_FragColor = vec4(0, 1, 0, 1);}"
+        gl.shaderSource(fShader, fragText)
+        gl.compileShader(fShader)
+
+        var program = gl.createProgram()
+        gl.attachShader(program, vShader)
+        gl.attachShader(program, fShader)
+        gl.linkProgram(program)
+
+        val vertices = new Float32Array(js.Array(
+          -0.3f,-0.3f,  0.3f,-0.3f,  0.0f,0.3f,  0.2f,0.2f,
+          0.6f,0.6f,  0.4f,-0.4f))
+
+        var buffer = gl.createBuffer()
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+
+        gl.useProgram(program)
+        var progDyn = program.asInstanceOf[scalajs.js.Dynamic]
+        progDyn.color = gl.getUniformLocation(program, "color")
+        var temp2 = scalajs.js.Array[Double]()
+        temp2.push(0f, 1f, 0.5f, 1.0f)
+        gl.uniform4fv(progDyn.color.asInstanceOf[dom.raw.WebGLUniformLocation], temp2)
+
+        progDyn.position = gl.getAttribLocation(program, "position")
+        gl.enableVertexAttribArray(progDyn.position.asInstanceOf[Int])
+        gl.vertexAttribPointer(progDyn.position.asInstanceOf[Int], 2, gl.FLOAT, false, 0, 0)
+        gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 2)
+      }
+
+
+
   def main(args: Array[String]): Unit = {
 
 
     import scala.scalajs.js.timers._
 
-    setTimeout(1000) {
-      // work
-      println("Work!")
-    }
-
-    setTimeout(1100) {
+    setTimeout(100) {
       // work
       println("Input.input_init()")
-
-      Input.input_init()
+ //     Input.input_init()
     }
 
-    setTimeout(1200) {
+    setTimeout(200) {
       // work
       println("Render.r_init()")
-
       Render.r_init()
     }
 
-    setTimeout(1300) {
+    setTimeout(300) {
       // work
       println("Resources.game_load()")
       Resources.game_load()
-
-      println("Game.game_init(0)")
-      Game.game_init(0)
     }
-
-    setTimeout(1500) {
-      // work
-      println("display something")
-
-      import MathUtils.vec3
-      import MathUtils.vec3_rotate_y
-
-      def run_frame(time_now:Double):Unit = {
-        Render.r_prepare_frame(0, 12, 0)
-        Render.r_draw(vec3(0, 0, 0), 0, 0, 1, Resources.model_q.f(0), Resources.model_q.f(0), 0, Resources.model_q.nv)
-        Render.r_push_light(vec3(Math.sin(time_now * 0.00033) * 200, 100, -100), 10, 255, 192, 32)
-        Render.r_push_light(vec3_rotate_y(vec3(0, 0, 100), time_now * 0.00063), 10, 32, 64, 255)
-        Render.r_push_light(vec3_rotate_y(vec3(100, 0, 0), time_now * 0.00053), 10, 196, 128, 255)
-        Render.r_end_frame()
-      }
-      requestAnimationFrame(run_frame)
-    }
-
 
   }
 /*

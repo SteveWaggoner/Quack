@@ -4,7 +4,7 @@ import com.publicscript.qucore.Audio.audio_ctx
 
 import scala.scalajs.js.typedarray.Uint8Array
 import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_add, vec3_length, vec3_mulf, vec3_normalize, vec3_sub}
-import com.publicscript.qucore.Render.{r_draw, r_push_block}
+import com.publicscript.qucore.Render.{r_draw, r_push_block, r_num_verts}
 import com.publicscript.qucore.Game.game_spawn
 import com.publicscript.qucore.{Entity, EntityPlayer}
 import org.scalajs.dom
@@ -75,13 +75,13 @@ object Map {
 
   def parse_map_container(data: Uint8Array): Array[MapData] = {
 
-    println("start parse_map_container "+data)
+    println("start parse_map_container r_num_verts="+r_num_verts)
 
     val maps = new ArrayBuffer[MapData](0)
     var i = 0
     while (i < data.length) {
 
-      println("in while " + i)
+ //     println("in while " + i)
 
 
       val blocks_size = data(i+0) | (data(i+1) << 8)
@@ -95,7 +95,7 @@ object Map {
       var j = i
       while (j < i + blocks_size) {
 
-        println("in while j " + j)
+    //    println("in while j " + j)
 
 
         // First value is either the x coordinate or a texture change
@@ -105,7 +105,7 @@ object Map {
           j += 2
         }
 
-        println("aa")
+   //     println("aa")
 
         val x = data(j+0)
         val y = data(j+1)
@@ -117,7 +117,7 @@ object Map {
         j += 6
 
 
-        println("bb")
+   //     println("bb")
 
         // Submit the block to the render buffer; we get the vertex offset
         // of this block within the buffer back, so we can draw it later
@@ -125,7 +125,7 @@ object Map {
           sx << 5, sy << 4, sz << 5,
           t)
 
-        println("cc")
+   //     println("cc")
 
         // The collision map is a bitmap; 8 x blocks per byte
         for (cz <- z until z + sz) {
@@ -138,7 +138,7 @@ object Map {
           }
         }
 
-        println("c")
+  //      println("c")
 
 
         r.addOne(MapRender(t=t, b=b))
@@ -146,7 +146,7 @@ object Map {
 
       i += blocks_size
 
-      println("d")
+  //    println("d")
 
 
       // Slice of entity data; we parse it when we actually spawn
@@ -154,19 +154,19 @@ object Map {
       val num_entities = data(i + 0) | (data(i + 1) << 8)
       i += 2
 
-      println("d2")
+  //    println("d2")
 
 
       val e = new ArrayBuffer[MapEntity](0)
       var k = i
       while (k < i + num_entities * 6 /*sizeof(entity_t)*/) {
 
-        println("d3 " + k)
+  //      println("d3 " + k)
 
 
         val ee = new MapEntity(entity_name = id_to_entity_name(data(k+0)), x = data(k+1), y = data(k+2), z = data(k+3), data1 = data(k+4), data2 = data(k+5))
 
-        println("d4")
+   //     println("d4")
 
 
         e.addOne(ee)
@@ -175,13 +175,14 @@ object Map {
 
       i += num_entities * 6
 
-      println("e")
+  //    println("e")
 
 
       maps.addOne(MapData(cm = cm, e.toArray, r.toArray))
     }
 
-    println("end parse_map_container")
+    println("end parse_map_container r_num_verts="+r_num_verts)
+
     maps.toArray
   }
 
@@ -249,7 +250,8 @@ object Map {
   }
 */
   def map_init(m: MapData) = {
-    val map = m
+    println("map_init()")
+    map = m
 
     // Parse entity data and spawn all entities for this map
     for (e <- map.e) {
@@ -258,6 +260,7 @@ object Map {
   }
 
   def spawn_entity(e:MapEntity) : Entity = {
+    println("spawn_entity e="+e)
     val pos = vec3(e.x*32,e.y*16,e.z*32)
     game_spawn(e.entity_name, pos, e.data1, e.data2)
   }
@@ -268,6 +271,11 @@ object Map {
 
 
   def map_block_at(x: Int, y: Int, z: Int):Boolean = {
+
+    if (map == null) {
+      throw new Exception("map_block_at() map is null ?!?!")
+    }
+
     val cell = (z * map_size * map_size + y * map_size + x) >> 3
     val bit = 1 << (x & 7)
     (map.cm(cell) & bit) != 0
@@ -304,8 +312,17 @@ object Map {
     false
   }
 
-  def map_draw() = {
+  def map_draw() : Unit = {
+
+    if ( map == null ) {
+      println("Map.map_draw() : map == null ?!?")
+      return
+    }
+
     val p = vec3()
+    println("p "+p)
+ //   println("map ? ? "+ map)
+    println("map.r "+ map.r)
     for (r <- map.r) {
       r_draw(p, 0, 0, r.t, r.b,r.b,0,36)
     }

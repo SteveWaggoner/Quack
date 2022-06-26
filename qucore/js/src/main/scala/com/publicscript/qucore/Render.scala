@@ -57,7 +57,7 @@ object Render {
     // Lights [(x,y,z), [r,g,b], ...]
     "uniform vec3 l[" + R_MAX_LIGHT_V3 + "];" + "void main(void){" + "gl_FragColor=texture2D(s,vt);" +
     // Debug: no textures
-    // 'gl_FragColor=vec4(1.0,1.0,1.0,1.0);' +
+   //  "gl_FragColor=vec4(1.0,1.0,1.0,1.0);" +
     // Calculate all lights
     "vec3 vl;" + "for(int i=0;i<" + R_MAX_LIGHT_V3 + ";i+=2) {" + "vl+=" +
     // Angle to normal
@@ -65,7 +65,7 @@ object Render {
     "*l[i+1];" +  // Light color/intensity
     "}" +
     // Debug: full bright lights
-    // 'vl = vec3(2,2,2);' +
+  //  "vl = vec3(2,2,2);" +
     "gl_FragColor.rgb=floor(" + "gl_FragColor.rgb*pow(vl,vec3(0.75))" +  // Light, Gamma
     "*16.0+0.5" + ")/16.0;" +  // Reduce final output color for some extra dirty looks
     "}"
@@ -90,7 +90,16 @@ object Render {
   var r_va_p2: Any = null
   var r_va_n2:Any = null
 
-  def r_init() = {
+
+  var is_r_init=false
+  def r_init() : Unit = {
+
+    if (is_r_init) {
+      println("Already r_init ?!?!")
+      return
+    }
+    is_r_init=true
+
     // Create shorthand WebGL function names
     // let webglShortFunctionNames = {};
 
@@ -126,24 +135,38 @@ object Render {
     gl.enable(gl.BLEND)
     gl.enable(gl.CULL_FACE)
     gl.viewport(0, 0, c.width, c.height)
+
+    println("r_init() c.width="+c.width+"  c.height="+c.height)
+
   }
 
   def r_compile_shader(shader_type: Any, shader_source: String) = {
+
+    println("r_compile_shader shader_type="+shader_type)
+    println("r_compile_shader shader_source="+shader_source)
+
     val shader = gl.createShader(shader_type)
     gl.shaderSource(shader, shader_source)
-    gl.compileShader(shader)
-    // console.log(gl.getShaderInfoLog(shader));
+    val res = gl.compileShader(shader)
+
+
+    //debug: turn this on
+   //  println(gl.getShaderInfoLog(shader))
     shader
   }
 
-  def r_vertex_attrib(shader_program: Any, attrib_name: String, count: Double, vertex_size: Double, offset: Double) = {
+  def r_vertex_attrib(shader_program: Any, attrib_name: String, count: Int, vertex_size: Int, offset: Int) = {
     val location = gl.getAttribLocation(shader_program, attrib_name)
     gl.enableVertexAttribArray(location)
     gl.vertexAttribPointer(location, count, gl.FLOAT, false, vertex_size * 4, offset * 4)
+
+    println("r_vertex_attrib()  shader_program"+shader_program+" attrib_name="+attrib_name+" count="+count+" vertex_size="+vertex_size+" offset="+offset)
+    println("r_vertex_attrib()  location="+location)
+
     location
   }
 
-  case class Texture(t:Any, c:HTMLCanvasElement)
+  case class Texture(t:scala.scalajs.js.Dynamic, c:HTMLCanvasElement)
 
   def r_create_texture(c: HTMLCanvasElement) = {
 
@@ -169,8 +192,18 @@ object Render {
     gl.uniform4f(r_u_camera, r_camera.x, r_camera.y, r_camera.z, 16 / 9)
     gl.uniform2f(r_u_mouse, r_camera_yaw, r_camera_pitch)
     gl.uniform3fv(r_u_lights, r_light_buffer)
+
+
+    println(" r_end_frame() r_u_camera="+r_u_camera+" r_camera="+r_camera)
+    println(" r_end_frame() r_u_mouse="+r_u_mouse+" r_camera_yaw="+r_camera_yaw+" r_camera_pitch="+r_camera_pitch)
+    println(" r_end_frame() r_u_lights="+r_u_lights+" r_light_buffer="+r_light_buffer)
+
+
     var vo = 0d
     var last_texture = -1
+
+    println("r_end_frame(): r_draw_calls.size = "+r_draw_calls.length)
+
     for (c <- r_draw_calls) {
 
       // c = [x, y, z, yaw, pitch, texture, offset1, offset2, mix, length]
@@ -179,7 +212,11 @@ object Render {
       // is sorted by texture indices, so this helps.
       if (last_texture != c.texture) {
         last_texture = c.texture
-        gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).t)
+
+        println(" r_end_frame() bindTexture r_textures(last_texture).t = " + r_textures(last_texture).t)
+
+    //debug: ignore texture for now
+   //     gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).t)
       }
 
       gl.uniform3f(r_u_pos, c.x, c.y, c.z)
@@ -195,27 +232,49 @@ object Render {
         gl.vertexAttribPointer(r_va_p2, 3, gl.FLOAT, false, 8 * 4, vo*8*4)
         gl.vertexAttribPointer(r_va_n2, 3, gl.FLOAT, false, 8 * 4, (vo*8+5)*4)
       }
-      gl.drawArrays(gl.TRIANGLES, c.texture, c.num_verts)
+
+      println(" r_end_frame() c="+c+"  c.offset1="+c.offset1+"  c.num_verts="+c.num_verts+" vo="+vo)
+
+/*
+      for (xx <- 0 until c.num_verts) {
+        println(" r_end_frame() r_buffer[" + xx + "] = " + r_buffer.get(c.offset1+xx))
+      }
+*/
+      gl.drawArrays(gl.TRIANGLES, c.offset1, c.num_verts)
     }
     // Reset draw calls
     r_draw_calls.clear()
   }
 
-  case class DrawCall(x:Double, y:Double, z:Double, yaw:Double, pitch:Double, texture:Int,offset1:Double,offset2:Double,mix:Any,num_verts:Int)
+  case class DrawCall(x:Double, y:Double, z:Double, yaw:Double, pitch:Double, texture:Int,offset1:Int,offset2:Int,mix:Int,num_verts:Int)
 
-  def r_draw(pos: Vec3, yaw: Double, pitch: Double, texture: Int, f1: Double, f2: Double, mix: Any, num_verts: Int) = {
-    r_draw_calls.addOne(new DrawCall(
-      pos.x, pos.y, pos.z, yaw, pitch,
-      texture, f1, f2, mix, num_verts
-    ))
+  def r_draw(pos: Vec3, yaw: Double, pitch: Double, texture: Int, f1: Int, f2: Int, mix: Int, num_verts: Int) = {
+    r_draw_calls.addOne(new DrawCall( pos.x, pos.y, pos.z, yaw, pitch, texture, f1, f2, mix, num_verts ))
   }
 
   def r_submit_buffer() = {
+
+    println("r_submit_buffer r_num_verts="+r_num_verts)
+
+    println("  q = "+r_buffer.subarray(20196*8, (20196 + 69)*8));
+    for ( xx <- 20196*8 until (20196 + 69)*8) {
+      println(" r_buffer["+xx+"] = "+r_buffer.get(xx))
+    }
+
+
+
     gl.bufferData(gl.ARRAY_BUFFER, r_buffer.subarray(0, r_num_verts * 8), gl.STATIC_DRAW)
   }
 
   def r_push_vert(pos: Vec3, normal: Vec3, u: Double, v: Double) = {
+
     r_buffer.set(js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, u.toFloat, v.toFloat, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat), r_num_verts * 8)
+
+
+    if ( r_num_verts >= 20196 && r_num_verts < 20196 + 69) {
+      println("  vert["+r_num_verts+"] = "+js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, u.toFloat, v.toFloat, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat))
+    }
+
     r_num_verts += 1
   }
 
@@ -231,11 +290,11 @@ object Render {
 
   def r_push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
 
-    println("r_push_block a")
+//    println("r_push_block a")
 
     val canvas = r_textures(texture).c
 
-    println("r_push_block b")
+//    println("r_push_block b")
 
     val index = r_num_verts
     val tx = sx / canvas.width
@@ -250,7 +309,7 @@ object Render {
     val v6 = vec3(x, y, z)
     val v7 = vec3(x + sx, y, z)
 
-    println("r_push_block c")
+ //   println("r_push_block c")
 
     r_push_quad(v0, v1, v2, v3, tx, tz) // top
     r_push_quad(v4, v5, v6, v7, tx, tz) // bottom
@@ -259,7 +318,7 @@ object Render {
     r_push_quad(v3, v1, v5, v7, tz, ty) // right
     r_push_quad(v0, v2, v6, v4, tz, ty) // left
 
-    println("r_push_block d")
+//    println("r_push_block d")
 
     index
   }
