@@ -226,26 +226,56 @@ object Resources {
       r_submit_buffer()
 
       println("requestAnimationFrame(intro_frame)")
-      requestAnimationFrame(intro_frame)
+
+      var looper = new FrameLooper(intro_frame)
+      //requestAnimationFrame(intro_frame)
 
       println("set up handlers")
 
       f.onclick = (e: MouseEvent) => g.requestFullscreen()
       g.onclick = (e: MouseEvent) => {
         g.onclick = (e: MouseEvent) => c.requestPointerLock()
-        // g.onclick();  <--Why????
 
         init_sfx()
         game_init(0)
-        //   run_frame = game_run
+
+        looper.term()
+        looper = new FrameLooper(game_run)
       }
 
     }
 
   }
 
+  type FrameFunc = Double => Unit
+
+  class FrameLooper (var drawFrame : FrameFunc, var loops: Int = -1) {
+
+    requestAnimationFrame(loopFunc _)
+
+    private def loopFunc(timenow: Double) : Unit = {
+      if ( drawFrame != null && (loops > 0 || loops == -1)) {
+        println("loopFunc")
+        if ( loops >  0)
+          loops = loops - 1
+        drawFrame(timenow)
+        requestAnimationFrame(loopFunc _)
+      }
+    }
+
+    def term() = {
+      drawFrame = null
+    }
+  }
+
+
+
   def intro_frame (time_now:Double) : Unit = {
     r_prepare_frame(0,0,0)
+
+    //println("time_now = "+time_now)
+
+    //val time_now = 4273
 
     r_draw(
       vec3(0,0,0), 0, 0, 1,
@@ -266,10 +296,7 @@ object Resources {
     )
 
     r_end_frame()
-
-  //  requestAnimationFrame(intro_frame _)
   }
 
-//  game_load()
 
 }

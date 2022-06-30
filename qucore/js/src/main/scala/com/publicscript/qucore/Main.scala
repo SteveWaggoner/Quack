@@ -90,7 +90,7 @@ object Main {
     setTimeout(100) {
       // work
       println("Input.input_init()")
- //     Input.input_init()
+      Input.input_init()
     }
 
     setTimeout(200) {

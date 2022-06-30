@@ -20,7 +20,7 @@ object Entity {
     // Entity Id to class - must be consistent with map_packer.c line ~900
 
 
-    println("creating a "+entity_name)
+  //  println("creating a "+entity_name)
 
     entity_name match {
       case "player" => new EntityPlayer(pos, data1, data2)
@@ -28,19 +28,25 @@ object Entity {
 
       case "enforcer" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
       case "ogre" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "zombie" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "hound" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "nailgun" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "grenadelauncher" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "health" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "nails" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "grenades" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "barrel" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "light" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "trigger_level" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "door" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "pickupkey" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "torch" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
+      case "zombie" => new EntityEnemyZombie(pos, data1.asInstanceOf[Double])
+      case "hound" => new EntityEnemyHound(pos, data1.asInstanceOf[Double])
+      case "nailgun" => new EntityPickupNailgun(pos)
+      case "grenadelauncher" => new EntityPickupGrenadeLauncher(pos)
+      case "health" => new EntityPickupHealth(pos)
+      case "nails" => new EntityPickupNails(pos)
+      case "grenades" => new EntityPickupGrenades(pos)
+      case "barrel" => new EntityBarrel(pos)
+      case "light" => new EntityLight(pos, data1.asInstanceOf[Double],data2.asInstanceOf[Int])
+      case "trigger_level" => new EntityTriggerLevel(pos)
+      case "door" => new EntityDoor(pos, data1.asInstanceOf[Int], data2.asInstanceOf[Double])
+      case "pickupkey" => new EntityPickupKey(pos)
+      case "torch" => new EntityTorch(pos)
+
+      case "gib" => new EntityProjectileGib(pos)
+      case "grenade" => new EntityProjectileGrenade(pos)
+      case "nail" => new EntityProjectileNail(pos)
+      case "plasma" => new EntityProjectilePlasma(pos)
+      case "shell" => new EntityProjectileShell(pos)
 
 
       /*
@@ -110,6 +116,11 @@ class Entity(var pos: Vec3) {
     }
 
     def update_physics() : Unit = {
+
+      if ( this.getClass.getSimpleName == "EntityPlayer" ) {
+        println(" update_physics()")
+      }
+
       if (die_at != 0 && die_at < game_time) {
         kill()
         return
@@ -135,6 +146,7 @@ class Entity(var pos: Vec3) {
       val steps = Math.ceil(vec3_length(move_dist) / 16).toInt
 
       //debug code ---
+      /*
       if ( steps == 0 ) {
         println("update_physics nothing to move entity="+this)
 
@@ -145,17 +157,31 @@ class Entity(var pos: Vec3) {
 
         return
       }
+      */
       //----
+      if ( steps == 0) {
+        println("no steps..not running update_physics()")
+        return
+      }
 
-      val move_step = vec3_mulf(move_dist, 1 / steps)
+      val move_step = vec3_mulf(move_dist, 1.0 / steps)
       var s = 0
+
+      if ( this.getClass.getSimpleName == "EntityPlayer" ) {
+        println(" update_physics() s=" + s + "  steps=" + steps)
+      }
+
       while (s < steps) {
 
-        println("  s="+s)
         // Remember last position so we can roll back
         val last_pos = vec3_clone(this.pos)
         // Integrate velocity into position
         this.pos = vec3_add(this.pos, move_step)
+
+        if ( this.getClass.getSimpleName == "EntityPlayer" ) {
+          println("  s=" + s + " move_step=" + move_step + " pos=" + pos + " last_pos=" + last_pos)
+        }
+
         // Collision with walls, horizonal
         if (this.collides(vec3(this.pos.x, last_pos.y, last_pos.z))) {
           // Can we step up?

@@ -58,7 +58,7 @@ object Game {
   }
 
   def game_spawn(entity_name:String, pos:Vec3, data1:Any = null, data2:Any = null) : Entity = {
-    println("game_spawn "+entity_name)
+    //println("game_spawn "+entity_name)
     val entity = Entity(entity_name, pos, data1, data2)
     game_entities.addOne(entity)
     entity
@@ -93,7 +93,11 @@ object Game {
     r_prepare_frame(0.1, 0.2, 0.5)
     // Update and render entities
     val alive_entities = new ArrayBuffer[Entity](0)
+    var xx=0
+    println("game_run(): "+time_now_par+" game_entities.count = "+game_entities.size)
     for (entity <- game_entities) {
+      xx = xx + 1
+  //    println(xx+" entity "+entity+"  dead="+entity.dead)
       if (!entity.dead) {
         entity.update()
         alive_entities.addOne(entity);

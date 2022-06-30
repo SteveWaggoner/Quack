@@ -72,6 +72,7 @@ object Input {
     println("Input constructor")
 
     document.onkeydown = (ev: KeyboardEvent) => {
+      println("document.onkeydown = (ev: KeyboardEvent)")
       if (setKey(ev.key, true)) {
         ev.preventDefault()
       }

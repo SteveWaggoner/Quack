@@ -3,7 +3,7 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.Vec3
 
 
-class EntityParticle(pos: Vec3) extends Entity(pos) {
+class EntityParticle(apos: Vec3) extends Entity(apos) {
   bounciness = 0.5
   f = 0.1
 

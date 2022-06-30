@@ -12,7 +12,7 @@ class EntityEnemyGrunt(p: Vec3, apatrol_dir: Double) extends EntityEnemy(p,apatr
 
   def attack() = {
     this.play_sound(sfx_shotgun_shoot)
-    game_spawn("light", vec3_add(this.p, vec3(0, 30, 0)), 10, 0xff).die_at = game_time + 0.1
+    game_spawn("light", vec3_add(this.pos, vec3(0, 30, 0)), 10, 0xff).die_at = game_time + 0.1
     for (i <- 0 until 3) {
       this.spawn_projectile("shell", 10000, Math.random() * 0.08 - 0.04, Math.random() * 0.08 - 0.04)
     }

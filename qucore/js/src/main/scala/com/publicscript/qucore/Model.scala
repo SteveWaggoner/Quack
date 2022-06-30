@@ -50,7 +50,7 @@ object Model {
       for (j <- 0 until num_frames * num_verts) {
         val vert = new RmfVert(data(i + 0), data(i + 1), data(i + 2))
 
-        println( " model="+models.length+"  vert "+j+"  "+vert)
+    //    println( " model="+models.length+"  vert "+j+"  "+vert)
 
         verts.addOne(vert)
         i += 3
@@ -60,7 +60,7 @@ object Model {
       for (j <- 0 until num_indices) {
         val indice = new RmfIndices(data(i + 0), data(i + 1), data(i + 2))
 
-        println( " indice="+indices.length+"  indice "+j+"  "+indice)
+   //     println( " indice="+indices.length+"  indice "+j+"  "+indice)
 
         indices.addOne(indice)
         i += 3
@@ -121,9 +121,6 @@ object Model {
 
     val before_r_num_verts = r_num_verts
 
-    println(" model_init() model.vertices = "+model.vertices)
-
-
     for (j <- 0 until model.vertices.length) {
 
       vertices(i + 0) = (model.vertices(j).x.toFloat - 15) * sx.toFloat
@@ -146,10 +143,7 @@ object Model {
 
 
     i=0
-    println(" model.num_indices = " + model.num_indices)
     for (j <- 0 until model.num_indices) {
-
-      println(" model.indices("+j+") = "+model.indices(j))
 
       index_increment += model.indices(j).a_address_inc
 
@@ -182,21 +176,11 @@ object Model {
         for (face_vertex <- 0 to 2) {
           val idx = indices(i + face_vertex) * 3
 
-          println(" i="+i+"  face_vertex="+face_vertex+"  idx="+idx)
-
           mv(face_vertex) = vec3(vertices(vertex_offset + idx + 0), vertices(vertex_offset + idx + 1), vertices(vertex_offset + idx + 2))
           uv(face_vertex) = UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
         }
 
         val n = vec3_face_normal(mv(2), mv(1), mv(0))
-
-
-        println("mv(2)  "+mv(2))
-        println("mv(1)  "+mv(1))
-        println("mv(0)  "+mv(0))
-
-        println(" n="+n)
-
 
         r_push_vert(mv(2), n, uv(2).u, uv(2).v)
         r_push_vert(mv(1), n, uv(1).u, uv(1).v)
@@ -206,7 +190,6 @@ object Model {
 
 
     val inc_r_num_verts = r_num_verts - before_r_num_verts
-    println(" model_init(): inc_verts="+inc_r_num_verts+" model.num_vertices="+model.num_vertices+", model.num_indices="+model.num_indices+", model.num_frames="+model.num_frames)
 
     new Model(
       f = frames.toArray,

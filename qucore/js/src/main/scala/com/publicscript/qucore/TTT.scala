@@ -11,7 +11,7 @@ object TTT {
       ((c >> 12) & 15) * 17,
       ((c >> 8) & 15) * 17,
       ((c >> 4) & 15) * 17,
-      (c & 15) / 15
+      (c & 15).toDouble / 15
     ).join() + ")"
   }
 
@@ -19,6 +19,8 @@ object TTT {
   def ttt(td: Array[Array[Any]], only_this_index: Int = -1, stack_depth: Int = 0): Array[HTMLCanvasElement] = {
 
     val sel_td = if (only_this_index >= 0) td.slice(only_this_index, only_this_index + 1) else td
+
+    var tex_i=0
 
     sel_td.map((d: Array[Any]) => {
 
@@ -83,7 +85,7 @@ object TTT {
             // Take the color value (first 3 nibbles) and
             // randomize the alpha value (last nibble)
             // between 0 and the input alpha.
-            fill_rect(x, y, size, size, 0, 0, ((color & 0xfff0) + Math.random() * (color & 15)).toInt)
+            fill_rect(x, y, size, size, 0, 0, ((color & 0xfff0) + ( scala.scalajs.js.Math.random() * (color & 15) ) + 0.8).toInt)  //SLW: roundup make it have less black spots
           }
         }
         return 2
@@ -147,6 +149,9 @@ object TTT {
         }
 
       }
+
+      tex_i = tex_i + 1
+
       e
     })
 

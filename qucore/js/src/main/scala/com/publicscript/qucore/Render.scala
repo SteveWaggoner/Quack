@@ -17,6 +17,9 @@ object Render {
 
   val R_MAX_VERTS = 1024 * 64
   val R_MAX_LIGHT_V3 = 64
+
+  // Vertex shader source. This translates the model position & rotation and also
+  // mixes positions of two buffers for animations.
   val R_SOURCE_VS = "precision highp float;" +
     // Vertex positions, normals and uv coords for the fragment shader
     "varying vec3 vp,vn;" + "varying vec2 vt;" +
@@ -36,39 +39,82 @@ object Render {
     "uniform float f;" +
     // Generate a rotation Matrix around the x,y,z axis;
     // Used for model rotation and camera yaw
-    "mat4 rx(float r){" + "return mat4(" + "1,0,0,0," + "0,cos(r),sin(r),0," + "0,-sin(r),cos(r),0," + "0,0,0,1" + ");" + "}" + "mat4 ry(float r){" + "return mat4(" + "cos(r),0,-sin(r),0," + "0,1,0,0," + "sin(r),0,cos(r),0," + "0,0,0,1" + ");" + "}" + "mat4 rz(float r){" + "return mat4(" + "cos(r),sin(r),0,0," + "-sin(r),cos(r),0,0," + "0,0,1,0," + "0,0,0,1" + ");" + "}" + "void main(void){" +
-    // Rotation Matrixes for model rotation
-    "mat4 " + "mry=ry(mr.x)," + "mrz=rz(mr.y);" +
-    // Mix vertex positions, rotate and add the model position
-    "vp=(mry*mrz*vec4(mix(p,p2,f),1.)).xyz+mp;" +
-    // Mix normals
-    "vn=(mry*mrz*vec4(mix(n,n2,f),1.)).xyz;" +
-    // UV coords are handed over to the fragment shader as is
-    "vt=t;" +
-    // Final vertex position is transformed by the projection matrix,
-    // rotated around mouse yaw/pitch and offset by the camera position
-    // We use a FOV of 90, so the matrix[0] and [5] are conveniently 1.
-    // (1 / Math.tan((90/180) * Math.PI / 2) === 1)
-    "gl_Position=" + "mat4(" + "1,0,0,0," + "0,c.w,0,0," + "0,0,1,1," + "0,0,-2,0" + ")*" +  // projection
-    "rx(-m.y)*ry(-m.x)*" + "vec4(vp-c.xyz,1.);" + "}"
+    "mat4 rx(float r){" +
+        "return mat4(" +
+            "1,0,0,0," +
+            "0,cos(r),sin(r),0," +
+            "0,-sin(r),cos(r),0," +
+            "0,0,0,1" +
+            ");" +
+    "}" +
+    "mat4 ry(float r){" +
+        "return mat4(" +
+            "cos(r),0,-sin(r),0," +
+            "0,1,0,0," +
+            "sin(r),0,cos(r),0," +
+            "0,0,0,1" +
+            ");" +
+        "}" +
+    "mat4 rz(float r){" +
+        "return mat4(" +
+            "cos(r),sin(r),0,0," +
+            "-sin(r),cos(r),0,0," +
+            "0,0,1,0," +
+            "0,0,0,1" +
+            ");" +
+        "}" +
+    "void main(void){" +
+        // Rotation Matrixes for model rotation
+        "mat4 " + "mry=ry(mr.x)," + "mrz=rz(mr.y);" +
+        // Mix vertex positions, rotate and add the model position
+        "vp=(mry*mrz*vec4(mix(p,p2,f),1.)).xyz+mp;" +
+        // Mix normals
+        "vn=(mry*mrz*vec4(mix(n,n2,f),1.)).xyz;" +
+        // UV coords are handed over to the fragment shader as is
+        "vt=t;" +
+        // Final vertex position is transformed by the projection matrix,
+        // rotated around mouse yaw/pitch and offset by the camera position
+        // We use a FOV of 90, so the matrix[0] and [5] are conveniently 1.
+        // (1 / Math.tan((90/180) * Math.PI / 2) === 1)
+        "gl_Position=" +
+            "mat4(" +
+                "1,0,0,0," +
+                "0,c.w,0,0," +
+                "0,0,1,1," +
+                "0,0,-2,0" +
+            ")*" +  // projection
+            "rx(-m.y)*ry(-m.x)*" +
+            "vec4(vp-c.xyz,1.);" +
+    "}"
+
   val R_SOURCE_FS = "precision highp float;" +
     // Vertex positions, normals and uv coords
-    "varying vec3 vp,vn;" + "varying vec2 vt;" + "uniform sampler2D s;" +
+    "varying vec3 vp,vn;" +
+    "varying vec2 vt;" +
+    "uniform sampler2D s;" +
     // Lights [(x,y,z), [r,g,b], ...]
-    "uniform vec3 l[" + R_MAX_LIGHT_V3 + "];" + "void main(void){" + "gl_FragColor=texture2D(s,vt);" +
-    // Debug: no textures
-   //  "gl_FragColor=vec4(1.0,1.0,1.0,1.0);" +
-    // Calculate all lights
-    "vec3 vl;" + "for(int i=0;i<" + R_MAX_LIGHT_V3 + ";i+=2) {" + "vl+=" +
-    // Angle to normal
-    "max(" + "dot(" + "vn, normalize(l[i]-vp)" + ")" + ",0.)*" + "(1./pow(length(l[i]-vp),2.))" +  // Inverse distance squared
-    "*l[i+1];" +  // Light color/intensity
-    "}" +
-    // Debug: full bright lights
-  //  "vl = vec3(2,2,2);" +
-    "gl_FragColor.rgb=floor(" + "gl_FragColor.rgb*pow(vl,vec3(0.75))" +  // Light, Gamma
-    "*16.0+0.5" + ")/16.0;" +  // Reduce final output color for some extra dirty looks
+    "uniform vec3 l[" + R_MAX_LIGHT_V3 + "];" +
+    "void main(void){" +
+        "gl_FragColor=texture2D(s,vt);" +
+        // Debug: no textures
+        //  "gl_FragColor=vec4(1.0,1.0,1.0,1.0);" +
+        // Calculate all lights
+        "vec3 vl;" +
+        "for(int i=0;i<" + R_MAX_LIGHT_V3 + ";i+=2) {" +
+            "vl+=" +
+            // Angle to normal
+              "max(" + "dot(" + "vn, normalize(l[i]-vp)" + ")" + ",0.)*" +
+                  "(1./pow(length(l[i]-vp),2.))" +  // Inverse distance squared
+                  "*l[i+1];" +  // Light color/intensity
+        "}" +
+        // Debug: full bright lights
+        //  "vl = vec3(2,2,2);" +
+        "gl_FragColor.rgb=floor(" +
+            "gl_FragColor.rgb*pow(vl,vec3(0.75))" +  // Light, Gamma
+            "*16.0+0.5" +
+            ")/16.0;" +  // Reduce final output color for some extra dirty looks
     "}"
+
   val r_buffer = new Float32Array(R_MAX_VERTS * 8)
   var r_num_verts = 0
   val r_light_buffer = new Float32Array(R_MAX_LIGHT_V3 * 3)
@@ -100,20 +146,7 @@ object Render {
     }
     is_r_init=true
 
-    // Create shorthand WebGL function names
-    // let webglShortFunctionNames = {};
 
-
-    /*
-    for (name <- gl) {
-      if (gl(name).length != undefined) {
-        gl(name.`match`("/(^..|[A-Z]|\d.|v$)/g".r).join("")) = gl(name)
-        // webglShortFunctionNames[name] = 'gl.' +name.match(/(^..|[A-Z]|\d.|v$)/g).join('');
-      }
-    }
-    */
-
-    // console.log(JSON.stringify(webglShortFunctionNames, null, '\t'));
     val shader_program = gl.createProgram()
     gl.attachShader(shader_program, r_compile_shader(gl.VERTEX_SHADER, R_SOURCE_VS))
     gl.attachShader(shader_program, r_compile_shader(gl.FRAGMENT_SHADER, R_SOURCE_FS))
@@ -142,16 +175,10 @@ object Render {
 
   def r_compile_shader(shader_type: Any, shader_source: String) = {
 
-    println("r_compile_shader shader_type="+shader_type)
-    println("r_compile_shader shader_source="+shader_source)
-
     val shader = gl.createShader(shader_type)
     gl.shaderSource(shader, shader_source)
     val res = gl.compileShader(shader)
 
-
-    //debug: turn this on
-   //  println(gl.getShaderInfoLog(shader))
     shader
   }
 
@@ -159,10 +186,6 @@ object Render {
     val location = gl.getAttribLocation(shader_program, attrib_name)
     gl.enableVertexAttribArray(location)
     gl.vertexAttribPointer(location, count, gl.FLOAT, false, vertex_size * 4, offset * 4)
-
-    println("r_vertex_attrib()  shader_program"+shader_program+" attrib_name="+attrib_name+" count="+count+" vertex_size="+vertex_size+" offset="+offset)
-    println("r_vertex_attrib()  location="+location)
-
     location
   }
 
@@ -178,6 +201,7 @@ object Render {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
     gl.generateMipmap(gl.TEXTURE_2D)
+
     r_textures.addOne(t)
   }
 
@@ -189,20 +213,14 @@ object Render {
   }
 
   def r_end_frame() = {
-    gl.uniform4f(r_u_camera, r_camera.x, r_camera.y, r_camera.z, 16 / 9)
+    gl.uniform4f(r_u_camera, r_camera.x, r_camera.y, r_camera.z, 16.0 / 9)
     gl.uniform2f(r_u_mouse, r_camera_yaw, r_camera_pitch)
     gl.uniform3fv(r_u_lights, r_light_buffer)
 
-
-    println(" r_end_frame() r_u_camera="+r_u_camera+" r_camera="+r_camera)
-    println(" r_end_frame() r_u_mouse="+r_u_mouse+" r_camera_yaw="+r_camera_yaw+" r_camera_pitch="+r_camera_pitch)
-    println(" r_end_frame() r_u_lights="+r_u_lights+" r_light_buffer="+r_light_buffer)
-
+//    println(" r_end_frame() r_u_lights="+r_u_lights+" r_light_buffer="+r_light_buffer)
 
     var vo = 0d
     var last_texture = -1
-
-    println("r_end_frame(): r_draw_calls.size = "+r_draw_calls.length)
 
     for (c <- r_draw_calls) {
 
@@ -212,11 +230,7 @@ object Render {
       // is sorted by texture indices, so this helps.
       if (last_texture != c.texture) {
         last_texture = c.texture
-
-        println(" r_end_frame() bindTexture r_textures(last_texture).t = " + r_textures(last_texture).t)
-
-    //debug: ignore texture for now
-   //     gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).t)
+        gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).t)
       }
 
       gl.uniform3f(r_u_pos, c.x, c.y, c.z)
@@ -233,13 +247,8 @@ object Render {
         gl.vertexAttribPointer(r_va_n2, 3, gl.FLOAT, false, 8 * 4, (vo*8+5)*4)
       }
 
-      println(" r_end_frame() c="+c+"  c.offset1="+c.offset1+"  c.num_verts="+c.num_verts+" vo="+vo)
+ //     println(" r_end_frame() c="+c+"  c.offset1="+c.offset1+"  c.num_verts="+c.num_verts+" vo="+vo+ " c.texture="+c.texture)
 
-/*
-      for (xx <- 0 until c.num_verts) {
-        println(" r_end_frame() r_buffer[" + xx + "] = " + r_buffer.get(c.offset1+xx))
-      }
-*/
       gl.drawArrays(gl.TRIANGLES, c.offset1, c.num_verts)
     }
     // Reset draw calls
@@ -253,28 +262,12 @@ object Render {
   }
 
   def r_submit_buffer() = {
-
     println("r_submit_buffer r_num_verts="+r_num_verts)
-
-    println("  q = "+r_buffer.subarray(20196*8, (20196 + 69)*8));
-    for ( xx <- 20196*8 until (20196 + 69)*8) {
-      println(" r_buffer["+xx+"] = "+r_buffer.get(xx))
-    }
-
-
-
     gl.bufferData(gl.ARRAY_BUFFER, r_buffer.subarray(0, r_num_verts * 8), gl.STATIC_DRAW)
   }
 
   def r_push_vert(pos: Vec3, normal: Vec3, u: Double, v: Double) = {
-
     r_buffer.set(js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, u.toFloat, v.toFloat, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat), r_num_verts * 8)
-
-
-    if ( r_num_verts >= 20196 && r_num_verts < 20196 + 69) {
-      println("  vert["+r_num_verts+"] = "+js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, u.toFloat, v.toFloat, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat))
-    }
-
     r_num_verts += 1
   }
 
@@ -290,11 +283,7 @@ object Render {
 
   def r_push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
 
-//    println("r_push_block a")
-
     val canvas = r_textures(texture).c
-
-//    println("r_push_block b")
 
     val index = r_num_verts
     val tx = sx / canvas.width
@@ -309,16 +298,12 @@ object Render {
     val v6 = vec3(x, y, z)
     val v7 = vec3(x + sx, y, z)
 
- //   println("r_push_block c")
-
     r_push_quad(v0, v1, v2, v3, tx, tz) // top
     r_push_quad(v4, v5, v6, v7, tx, tz) // bottom
     r_push_quad(v2, v3, v4, v5, tx, ty) // front
     r_push_quad(v1, v0, v7, v6, tx, ty) // back
     r_push_quad(v3, v1, v5, v7, tz, ty) // right
     r_push_quad(v0, v2, v6, v4, tz, ty) // left
-
-//    println("r_push_block d")
 
     index
   }

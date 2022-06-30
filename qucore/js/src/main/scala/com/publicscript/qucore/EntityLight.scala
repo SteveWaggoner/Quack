@@ -23,7 +23,7 @@ class EntityLight(apos:Vec3, alight:Double, acolor:Int) extends Entity(apos) {
     )
 
 
-  def _update() = {
+  override def update() = {
     if (this.flicker && Math.random() > 0.9) {
       this.light = if (Math.random() > 0.5) 10 else 0
     }

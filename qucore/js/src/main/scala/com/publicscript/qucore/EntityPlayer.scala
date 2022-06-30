@@ -20,7 +20,7 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
   //constructor
   size = vec3(12, 24, 12)
   f = 10
-  val speed = 3000
+  val speed = 3000d
   step_height = 17
   var can_jump = false
   var can_shoot_at = 0d
@@ -39,8 +39,7 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
 
   override def update() = {
 
-    println("EntityPlayer: m="+m)
-    println("EntityPlayer: m.value="+m.value)
+    println("EntityPlayer.update()")
 
     // Mouse look
     this.pitch = clamp(this.pitch + mouse_y * m.value.toDouble * (if (mi.checked) -0.00015 else 0.00015), -1.5, 1.5)
@@ -49,7 +48,10 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     val key_x = (if (key_right) 1 else 0) - (if (key_left) 1 else 0)
     val key_y = (if (key_up) 1 else 0) - (if (key_down) 1 else 0)
 
-    this.accel = vec3_mulf(vec3_rotate_y(vec3(key_x, 0, key_y), this.yaw), this.speed * (if (this.on_ground) 1 else 0.3))
+    this.accel = vec3_mulf(vec3_rotate_y(vec3(key_x, 0, key_y), this.yaw), this.speed * (if (this.on_ground) 1.0 else 0.3))
+
+    println("key_x="+key_x+" key_y="+key_y+" accel="+accel+" speed="+this.speed)
+
     if (key_jump && this.on_ground && this.can_jump) {
       this.veloc.y = 400
       this.on_ground = false
@@ -65,9 +67,9 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     val shoot_wait = this.can_shoot_at - game_time
     val weapon = this.weapons(this.weapon_index)
 
-    println(" weapon = "+weapon)
-    println(" weapon.model = "+weapon.model)
-    println(" com.publicscript.qucore.Resources.model_shotgun = " + com.publicscript.qucore.Resources.model_shotgun)
+ //   println(" weapon = "+weapon)
+ //   println(" weapon.model = "+weapon.model)
+ //   println(" com.publicscript.qucore.Resources.model_shotgun = " + com.publicscript.qucore.Resources.model_shotgun)
 
     // Shoot Weapon
     if (key_action && shoot_wait < 0) {
@@ -75,40 +77,40 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
       if (weapon.needs_ammo && weapon.ammo == 0) {
         audio_play(sfx_no_ammo)
       } else {
-        weapon.shoot(this.p, this.yaw, this.pitch)
-        game_spawn("light", this.p, 10, 0xff).die_at = game_time + 0.1
+        weapon.shoot(this.pos, this.yaw, this.pitch)
+        game_spawn("light", this.pos, 10, 0xff).die_at = game_time + 0.1
       }
     }
     this.bob += vec3_length(this.accel) * 0.0001
     this.f = if (this.on_ground) 10 else 2.5
     this.update_physics()
 
-    println("EntityPlayer update x")
+ //   println("EntityPlayer update x")
 
 
-    r_camera.x = this.p.x
-    r_camera.z = this.p.z
+    r_camera.x = this.pos.x
+    r_camera.z = this.pos.z
     // Smooth step up on stairs
-    r_camera.y = this.p.y + 8 - clamp(game_time - this.stepped_up_at, 0, 0.1) * -160
+    r_camera.y = this.pos.y + 8 - clamp(game_time - this.stepped_up_at, 0, 0.1) * -160
     r_camera_yaw = this.yaw
     r_camera_pitch = this.pitch
     // Draw weapon at camera position at an offset and add the current
     // recoil (calculated from shoot_wait and weapon._reload) accounting
     // for the current view yaw/pitch
 
-    println("EntityPlayer update y")
+//    println("EntityPlayer update y")
 
-    println(" weapon =" +weapon)
-    println(" weapon.model =" +weapon.model)
+//    println(" weapon =" +weapon)
+//    println(" weapon.model =" +weapon.model)
 
     r_draw(vec3_add(r_camera, vec3_rotate_yaw_pitch(vec3(0, -10 + Math.sin(this.bob) * 0.3, 12 + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)), this.yaw + Math.PI / 2, this.pitch, weapon.texture, weapon.model.f(0), weapon.model.f(0), 0, weapon.model.nv)
 
-    println("EntityPlayer update y")
+//    println("EntityPlayer update y")
 
     h.textContent = this.health.toString
     a.textContent = if (weapon.needs_ammo) weapon.ammo.toString else "∞"
 
-    println("EntityPlayer update z")
+//    println("EntityPlayer update z")
 
     // Debug: a light around the player
     // r_push_light(vec3_add(this.p, vec3(0,64,0)), 10, 255, 192, 32);

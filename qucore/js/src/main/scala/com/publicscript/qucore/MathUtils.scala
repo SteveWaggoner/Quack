@@ -4,15 +4,15 @@ object MathUtils {
 
   import scala.scalajs.js.Math
 
-  def clamp(v: Double, min: Double, max: Double) = {
+  def clamp(v: Double, min: Double, max: Double) : Double = {
     if (v < min) min else if (v > max) max else v
   }
 
-  def scale(v: Double, in_min: Double, in_max: Double, out_min: Double, out_max: Double) = {
+  def scale(v: Double, in_min: Double, in_max: Double, out_min: Double, out_max: Double) : Double = {
     out_min + (out_max - out_min) * (v - in_min) / (in_max - in_min)
   }
 
-  def anglemod(r: Double) = {
+  def anglemod(r: Double) : Double = {
     Math.atan2(Math.sin(r), Math.cos(r))
   }
 
