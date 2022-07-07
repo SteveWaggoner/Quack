@@ -6,9 +6,9 @@ import com.publicscript.qucore.Map.{map_trace}
 
 import com.publicscript.qucore.Resources.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
 
-abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
+abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
 
-  case class State(anim_index: Int, speed: Double, next_state_update: Double, next_state: State = null)
+  case class State(anim_index: Int, speed: Double, next_state_update: Double, next_state: State = null, name:String="")
 
   // Animations
   var ANIMS = Array(
@@ -21,21 +21,24 @@ abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
 
   // State definitions
   // [0: anim_index, 1: speed, 2: next_state_update, 3: next_state]
-  val STATE_IDLE = State(0, 0, 0.1)
-  var STATE_PATROL = State(1, 0.5, 0.5)
-  var STATE_FOLLOW = State(2, 1, 0.3)
-  var STATE_ATTACK_RECOVER = State(0, 0, 0.1, this.STATE_FOLLOW)
-  var STATE_ATTACK_EXEC = State(4, 0, 0.4, this.STATE_ATTACK_RECOVER)
-  var STATE_ATTACK_PREPARE = State(3, 0, 0.4, this.STATE_ATTACK_EXEC)
-  var STATE_ATTACK_AIM = State(0, 0, 0.1, this.STATE_ATTACK_PREPARE)
-  var STATE_EVADE = State(2, 1, 0.8, this.STATE_ATTACK_AIM)
+  val STATE_IDLE = State( 0, 0, 0.1, name="IDLE")
+  var STATE_PATROL = State(1, 0.5, 0.5, name="PATROL")
+  var STATE_FOLLOW = State(2, 1, 0.3, name="FOLLOW")
+  var STATE_ATTACK_RECOVER = State(0, 0, 0.1, this.STATE_FOLLOW, name="ATTACK_RECOVER")
+  var STATE_ATTACK_EXEC = State(4, 0, 0.4, this.STATE_ATTACK_RECOVER, name="ATTACK_EXEC")
+  var STATE_ATTACK_PREPARE = State(3, 0, 0.4, this.STATE_ATTACK_EXEC, name="ATTACK_PREPARE")
+  var STATE_ATTACK_AIM = State(0, 0, 0.1, this.STATE_ATTACK_PREPARE, name="ATTACK_AIM")
+  var STATE_EVADE = State(2, 1, 0.8, this.STATE_ATTACK_AIM, name="EVADE")
 
   this.size = vec3(12, 28, 12)
   this.step_height = 17
   this.keep_off_ledges = true
   this.check_against = Entity.ENTITY_GROUP_PLAYER
 
-  var speed = 196
+ // var speed = 196
+
+  var speed = 196 / 4
+
   var attack_distance = 800
   var evade_distance = 96
   var attack_chance = 0.65
@@ -63,7 +66,7 @@ abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
     this.state = state
     this.anim = this.ANIMS(state.anim_index)
     this.anim_time = 0
-    this.state_update_at = game_time + state.next_state_update + state.next_state_update / 4 * Math.random()
+    this.state_update_at = game_time + state.next_state_update + state.next_state_update / 4d * Math.random()
   }
 
   override def update() = {
@@ -73,6 +76,7 @@ abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
       this.turn_bias = if (Math.random() > 0.5) 0.5 else -0.5
       val distance_to_player = vec3_dist(this.pos, game_entity_player.pos)
       val angle_to_player = vec3_2d_angle(this.pos, game_entity_player.pos)
+
       if (this.state.next_state != null) {
         this.set_state(this.state.next_state)
       }
@@ -111,7 +115,7 @@ abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
       if (this.state == this.STATE_ATTACK_AIM) {
         this.target_yaw = angle_to_player
         // No line of sight? Randomly shuffle around :/
-        if (map_trace(this.pos, game_entity_player.pos) == null) {
+        if (map_trace(this.pos, game_entity_player.pos)!=null) {
           this.set_state(this.STATE_EVADE)
         }
       }
@@ -160,7 +164,7 @@ abstract class EntityEnemy(pos: Vec3,patrol_dir: Double) extends Entity(pos) {
     game_entities_enemies = game_entities_enemies.filter((e: Entity) => e != this)
   }
 
-  override def did_collide(axis: Double): Unit = {
+  override def did_collide(axis: Int): Unit = {
     if (axis == 1) {
       return
     }

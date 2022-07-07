@@ -61,6 +61,9 @@ object Game {
     //println("game_spawn "+entity_name)
     val entity = Entity(entity_name, pos, data1, data2)
     game_entities.addOne(entity)
+
+    println("adding "+entity+" to game_Entities, now length is "+game_entities.length)
+
     entity
   }
 
@@ -80,8 +83,8 @@ object Game {
   def game_run(time_now_par: Double) : Unit = {
     var time_now = time_now_par
 
- // debug no loop yet
- //   requestAnimationFrame(game_run)
+ //   println("game_run() : game_entities.length = "+game_entities.length)
+
     time_now *= 0.001
 
     if ( game_real_time_last == 0)
@@ -91,19 +94,24 @@ object Game {
     game_real_time_last = time_now
     game_time += game_tick
     r_prepare_frame(0.1, 0.2, 0.5)
+
     // Update and render entities
-    val alive_entities = new ArrayBuffer[Entity](0)
-    var xx=0
-    println("game_run(): "+time_now_par+" game_entities.count = "+game_entities.size)
-    for (entity <- game_entities) {
-      xx = xx + 1
-  //    println(xx+" entity "+entity+"  dead="+entity.dead)
+
+    //note: entity.update() might add more game_entities
+    for (entity <- game_entities.clone()) {
       if (!entity.dead) {
         entity.update()
-        alive_entities.addOne(entity);
+      }
+    }
+
+    val alive_entities = new ArrayBuffer[Entity](0)
+    for (entity <- game_entities) {
+      if (!entity.dead) {
+        alive_entities.addOne(entity)
       }
     }
     game_entities = alive_entities
+
     map_draw()
     r_end_frame()
     // Reset mouse movement and buttons that should be pressed, not held.

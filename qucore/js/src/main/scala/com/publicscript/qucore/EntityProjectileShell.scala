@@ -14,7 +14,7 @@ class EntityProjectileShell(apos:Vec3) extends Entity(apos) {
     this.update_physics()
   }
 
-  override def did_collide(axis: Double):Unit = {
+  override def did_collide(axis: Int):Unit = {
     this.kill()
     this.spawn_particles(2, 80, model_explosion, 4, 0.4)
     game_spawn("light", this.pos, 0.5, 0xff).die_at = game_time + 0.1

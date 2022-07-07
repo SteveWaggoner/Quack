@@ -50,8 +50,8 @@ object Map {
 */
 
   case class MapEntity(entity_name:String,x:Int,y:Int,z:Int,data1:Int,data2:Int)
-  case class MapRender (b:Int,t:Int)
-  case class MapData(cm:Uint8Array,e:Array[MapEntity],r:Array[MapRender])
+  case class MapRender (block:Int, texture:Int)
+  case class MapData(collision_map:Uint8Array, entity:Array[MapEntity], render:Array[MapRender])
   // Entity Id to class - must be consistent with map_packer.c line ~900
   val id_to_entity_name = scala.collection.immutable.Map[Int,String](
     0 -> "player",
@@ -125,7 +125,7 @@ object Map {
           }
         }
 
-        r.addOne(MapRender(t=t, b=b))
+        r.addOne(MapRender(texture=t, block=b))
       }
 
       i += blocks_size
@@ -146,7 +146,7 @@ object Map {
 
       i += num_entities * 6
 
-      maps.addOne(MapData(cm = cm, e.toArray, r.toArray))
+      maps.addOne(MapData(collision_map = cm, e.toArray, r.toArray))
     }
 
     println("end parse_map_container r_num_verts="+r_num_verts)
@@ -172,6 +172,7 @@ object Map {
   }
   */
 
+  /*
   def updatePre(pre: html.Pre) = {
     import scala.concurrent
     .ExecutionContext
@@ -189,7 +190,7 @@ object Map {
     for (text <- responseText)
       pre.textContent = text
   }
-
+*/
 
   import scala.concurrent.Future
   def map_load_container_async(url: String): Future[Array[MapData]] = {
@@ -222,7 +223,7 @@ object Map {
     map = m
 
     // Parse entity data and spawn all entities for this map
-    for (e <- map.e) {
+    for (e <- map.entity) {
       spawn_entity(e)
     }
   }
@@ -234,7 +235,8 @@ object Map {
   }
 
   def map_block_beneath(pos:Vec3, size:Vec3):Boolean = {
-    map_block_at(pos.x.toInt >> 5, (pos.y - size.y - 8).toInt >> 4, pos.z.toInt >> 5) || map_block_at(pos.x.toInt >> 5, (pos.y - size.y - 24).toInt >> 4, pos.z.toInt >> 5)
+    map_block_at(pos.x.toInt >> 5, (pos.y - size.y - 8).toInt >> 4, pos.z.toInt >> 5) ||
+      map_block_at(pos.x.toInt >> 5, (pos.y - size.y - 24).toInt >> 4, pos.z.toInt >> 5)
   }
 
 
@@ -246,7 +248,7 @@ object Map {
 
     val cell = (z * map_size * map_size + y * map_size + x) >> 3
     val bit = 1 << (x & 7)
-    (map.cm(cell) & bit) != 0
+    (map.collision_map(cell) & bit) != 0
   }
 
   def map_line_of_sight(a_par:Vec3, b:Vec3):Boolean = {
@@ -254,6 +256,7 @@ object Map {
   }
 
   def map_trace(a_par: Vec3, b: Vec3):Vec3 = {
+
     var a = a_par
     val diff = vec3_sub(b, a)
     val step_dir = vec3_mulf(vec3_normalize(diff), 16)
@@ -288,11 +291,14 @@ object Map {
     }
 
     val p = vec3()
-    //println("p "+p)
- //   println("map ? ? "+ map)
- //   println("map.r "+ map.r)
-    for (r <- map.r) {
-      r_draw(p, 0, 0, r.t, r.b,r.b,0,36)
+
+ //   var ii=0
+    for (r <- map.render) {
+    //  if (ii % 20 == 1) {
+    //    println("map_draw(): p="+p+"  r="+r)
+        r_draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
+   //   }
+   //   ii = ii + 1
     }
   }
 

@@ -19,7 +19,7 @@ class EntityProjectileGib(apos:Vec3) extends Entity(apos) {
     this.f = if (this.on_ground) 15 else 0
   }
 
-  override def did_collide(axis: Double) : Unit = {
+  override def did_collide(axis: Int) : Unit = {
     if (axis == 1 && this.veloc.y < -128) {
       this.play_sound(sfx_enemy_hit)
     }

@@ -255,7 +255,6 @@ object Resources {
 
     private def loopFunc(timenow: Double) : Unit = {
       if ( drawFrame != null && (loops > 0 || loops == -1)) {
-        println("loopFunc")
         if ( loops >  0)
           loops = loops - 1
         drawFrame(timenow)

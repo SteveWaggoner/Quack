@@ -18,10 +18,6 @@ object Entity {
   def apply(entity_name:String, pos:Vec3, data1:Any, data2:Any) : Entity = {
 
     // Entity Id to class - must be consistent with map_packer.c line ~900
-
-
-  //  println("creating a "+entity_name)
-
     entity_name match {
       case "player" => new EntityPlayer(pos, data1, data2)
       case "grunt" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
@@ -48,24 +44,7 @@ object Entity {
       case "plasma" => new EntityProjectilePlasma(pos)
       case "shell" => new EntityProjectileShell(pos)
 
-
-      /*
-            case 2 => Some(new EntityEnemyEnforcer(p, e.data1, e.data2))
-            case 3 => Some(new EntityEnemyOgre(p, e.data1, e.data2))
-            case 4 => Some(new EntityEnemyZombie(p, e.data1, e.data2))
-            case 5 => Some(new EntityEnemyHound(p, e.data1, e.data2))
-            case 6 => Some(new EntityPickupNailgun(p, e.data1, e.data2))
-            case 7 => Some(new EntityPickupGrenadeLauncher(p, e.data1, e.data2))
-            case 8 => Some(new EntityPickupHealth(p, e.data1, e.data2))
-            case 9 => Some(new EntityPickupNails(p, e.data1, e.data2))
-            case 10 => Some(new EntityPickupGrenades(p, e.data1, e.data2))
-            case 11 => Some(new EntityBarrel(p, e.data1, e.data2))
-            case 12 => Some(new EntityLight(p, e.data1, e.data2))
-            case 13 => Some(new EntityTriggerLevel(p, e.data1, e.data2))
-            case 14 => Some(new EntityDoor(p, e.data1, e.data2))
-            case 15 => Some(new EntityPickupKey(p, e.data1, e.data2))
-            case 16 => Some(new EntityTorch(p, e.data1, e.data2))
-      */
+      case "particle" => new EntityParticle(pos)
 
       case _ => throw new IllegalArgumentException(s"Unknown entity name: $entity_name")
     }
@@ -117,10 +96,6 @@ class Entity(var pos: Vec3) {
 
     def update_physics() : Unit = {
 
-      if ( this.getClass.getSimpleName == "EntityPlayer" ) {
-        println(" update_physics()")
-      }
-
       if (die_at != 0 && die_at < game_time) {
         kill()
         return
@@ -145,20 +120,6 @@ class Entity(var pos: Vec3) {
       val move_dist = vec3_mulf(this.veloc, game_tick)
       val steps = Math.ceil(vec3_length(move_dist) / 16).toInt
 
-      //debug code ---
-      /*
-      if ( steps == 0 ) {
-        println("update_physics nothing to move entity="+this)
-
-        println(" veloc ="+this.veloc)
-        println(" game_tick = "+game_tick)
-        println(" move_dist ="+move_dist)
-        println("  vec3_length(move_dist)="+vec3_length(move_dist))
-
-        return
-      }
-      */
-      //----
       if ( steps == 0) {
         println("no steps..not running update_physics()")
         return
@@ -167,10 +128,6 @@ class Entity(var pos: Vec3) {
       val move_step = vec3_mulf(move_dist, 1.0 / steps)
       var s = 0
 
-      if ( this.getClass.getSimpleName == "EntityPlayer" ) {
-        println(" update_physics() s=" + s + "  steps=" + steps)
-      }
-
       while (s < steps) {
 
         // Remember last position so we can roll back
@@ -178,12 +135,10 @@ class Entity(var pos: Vec3) {
         // Integrate velocity into position
         this.pos = vec3_add(this.pos, move_step)
 
-        if ( this.getClass.getSimpleName == "EntityPlayer" ) {
-          println("  s=" + s + " move_step=" + move_step + " pos=" + pos + " last_pos=" + last_pos)
-        }
-
         // Collision with walls, horizonal
         if (this.collides(vec3(this.pos.x, last_pos.y, last_pos.z))) {
+          println("collision with walls, horizonal")
+
           // Can we step up?
           if (this.step_height!=0 || !this.on_ground || this.veloc.y > 0 || this.collides(vec3(this.pos.x, last_pos.y + this.step_height, last_pos.z))) {
             this.did_collide(0)
@@ -197,6 +152,8 @@ class Entity(var pos: Vec3) {
         }
         // Collision with walls, vertical
         if (this.collides(vec3(this.pos.x, last_pos.y, this.pos.z))) {
+          println("collision with walls, vertical")
+
           // Can we step up?
           if (this.step_height==0 || !this.on_ground || this.veloc.y > 0 || this.collides(vec3(this.pos.x, last_pos.y + this.step_height, this.pos.z))) {
             this.did_collide(2)
@@ -210,6 +167,9 @@ class Entity(var pos: Vec3) {
         }
         // Collision with ground/Ceiling
         if (this.collides(this.pos)) {
+      //    println("collision with ground/Ceiling")
+
+
           this.did_collide(1)
           this.pos.y = last_pos.y
           // Only bounce from ground/ceiling if we have enough velocity
@@ -229,7 +189,7 @@ class Entity(var pos: Vec3) {
         return false
       }
       for (entity <- check_entities) {
-        if (vec3_dist(p, entity.pos) < this.size.y + entity.size.y) {
+        if (vec3_dist(p, entity.pos) < (this.size.y + entity.size.y)) {
           // If we collide with an entity set the step height to 0,
           // so we don't climb up on its shoulders :/
           step_height = 0
@@ -246,7 +206,7 @@ class Entity(var pos: Vec3) {
       map_block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
     }
 
-    def did_collide(axis: Double) = {
+    def did_collide(axis: Int) = {
    //   false
     }
 

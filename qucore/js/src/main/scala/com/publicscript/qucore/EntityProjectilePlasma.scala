@@ -18,7 +18,7 @@ class EntityProjectilePlasma(apos:Vec3) extends Entity(apos) {
     r_push_light(this.pos, 5, 255, 128, 0)
   }
 
-  override def did_collide(axis: Double):Unit = {
+  override def did_collide(axis: Int):Unit = {
     this.kill()
     this.play_sound(sfx_nailgun_hit)
     this.spawn_particles(2, 80, model_explosion, 8, 0.4)

@@ -72,7 +72,7 @@ object Input {
     println("Input constructor")
 
     document.onkeydown = (ev: KeyboardEvent) => {
-      println("document.onkeydown = (ev: KeyboardEvent)")
+ //     println("document.onkeydown = (ev: KeyboardEvent)")
       if (setKey(ev.key, true)) {
         ev.preventDefault()
       }
@@ -94,7 +94,7 @@ object Input {
           key_prev = true
         }
    //     last_wheel_event = game_time
-        dump()
+   //     dump()
 
       }
     }
@@ -104,7 +104,7 @@ object Input {
     c.onmousemove = (ev: MouseEvent) => {
       mouse_x += ev.movementX
       mouse_y += ev.movementY
-      dump()
+    //  dump()
     }
     c.onmousedown = (ev: MouseEvent) => {
       ev.preventDefault()
@@ -112,7 +112,7 @@ object Input {
         case 0 => key_action = true
         case 2 => key_jump = true
       }
-      dump()
+    //  dump()
     }
     c.onmouseup = (ev: MouseEvent) => {
       ev.preventDefault()
@@ -120,7 +120,7 @@ object Input {
         case 0 => key_action = false
         case 2 => key_jump = false
       }
-      dump()
+     // dump()
 
     }
 

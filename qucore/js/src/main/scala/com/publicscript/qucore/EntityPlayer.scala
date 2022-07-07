@@ -1,12 +1,12 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_add, vec3_length, vec3_mulf, vec3_rotate_y, vec3_rotate_yaw_pitch}
-import com.publicscript.qucore.Game.{game_entities_friendly, game_entity_player, game_init, game_map_index, game_spawn, game_time, title_show_message}
+import com.publicscript.qucore.MathUtils._
+import com.publicscript.qucore.Game._
 import com.publicscript.qucore.Audio.audio_play
 import com.publicscript.qucore.Resources.{sfx_hurt, sfx_no_ammo}
 import com.publicscript.qucore.Render.{r_camera, r_camera_pitch, r_camera_yaw, r_draw}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
-import com.publicscript.qucore.Input.{key_action, key_down, key_jump, key_left, key_next, key_prev, key_right, key_up, mouse_x, mouse_y}
+import com.publicscript.qucore.Input._
 
 import scala.scalajs.js.timers._
 import com.publicscript.qucore.Document.{a, h, m, mi}
@@ -15,7 +15,7 @@ import scala.collection.mutable.ArrayBuffer
 
 
 
-class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
+class EntityPlayer(ap: Vec3, p1: Any, p2: Any) extends Entity(ap) {
 
   //constructor
   size = vec3(12, 24, 12)
@@ -39,8 +39,6 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
 
   override def update() = {
 
-    println("EntityPlayer.update()")
-
     // Mouse look
     this.pitch = clamp(this.pitch + mouse_y * m.value.toDouble * (if (mi.checked) -0.00015 else 0.00015), -1.5, 1.5)
     this.yaw = (this.yaw + mouse_x * m.value.toDouble * 0.00015) % (Math.PI * 2)
@@ -49,8 +47,6 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     val key_y = (if (key_up) 1 else 0) - (if (key_down) 1 else 0)
 
     this.accel = vec3_mulf(vec3_rotate_y(vec3(key_x, 0, key_y), this.yaw), this.speed * (if (this.on_ground) 1.0 else 0.3))
-
-    println("key_x="+key_x+" key_y="+key_y+" accel="+accel+" speed="+this.speed)
 
     if (key_jump && this.on_ground && this.can_jump) {
       this.veloc.y = 400
@@ -67,26 +63,24 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     val shoot_wait = this.can_shoot_at - game_time
     val weapon = this.weapons(this.weapon_index)
 
- //   println(" weapon = "+weapon)
- //   println(" weapon.model = "+weapon.model)
- //   println(" com.publicscript.qucore.Resources.model_shotgun = " + com.publicscript.qucore.Resources.model_shotgun)
-
     // Shoot Weapon
     if (key_action && shoot_wait < 0) {
       this.can_shoot_at = game_time + weapon.reload
       if (weapon.needs_ammo && weapon.ammo == 0) {
         audio_play(sfx_no_ammo)
       } else {
+        println("1weapon.shoot() game_entities.length="+game_entities.length)
         weapon.shoot(this.pos, this.yaw, this.pitch)
+        println("2weapon.shoot() game_entities.length="+game_entities.length)
+
         game_spawn("light", this.pos, 10, 0xff).die_at = game_time + 0.1
+
+        println("3weapon.shoot() game_entities.length="+game_entities.length)
       }
     }
     this.bob += vec3_length(this.accel) * 0.0001
     this.f = if (this.on_ground) 10 else 2.5
     this.update_physics()
-
- //   println("EntityPlayer update x")
-
 
     r_camera.x = this.pos.x
     r_camera.z = this.pos.z
@@ -98,19 +92,11 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     // recoil (calculated from shoot_wait and weapon._reload) accounting
     // for the current view yaw/pitch
 
-//    println("EntityPlayer update y")
 
-//    println(" weapon =" +weapon)
-//    println(" weapon.model =" +weapon.model)
-
-    r_draw(vec3_add(r_camera, vec3_rotate_yaw_pitch(vec3(0, -10 + Math.sin(this.bob) * 0.3, 12 + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)), this.yaw + Math.PI / 2, this.pitch, weapon.texture, weapon.model.f(0), weapon.model.f(0), 0, weapon.model.nv)
-
-//    println("EntityPlayer update y")
+    r_draw(vec3_add(r_camera, vec3_rotate_yaw_pitch(vec3(0, -10d + Math.sin(this.bob) * 0.3, 12d + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)), this.yaw + Math.PI / 2, this.pitch, weapon.texture, weapon.model.f(0), weapon.model.f(0), 0, weapon.model.nv)
 
     h.textContent = this.health.toString
     a.textContent = if (weapon.needs_ammo) weapon.ammo.toString else "∞"
-
-//    println("EntityPlayer update z")
 
     // Debug: a light around the player
     // r_push_light(vec3_add(this.p, vec3(0,64,0)), 10, 255, 192, 32);
@@ -130,6 +116,13 @@ class EntityPlayer(p: Vec3, p1: Any, p2: Any) extends Entity(p) {
     }
 
   }
+
+  //debug
+  /*
+  override def did_collide_with_entity(other: Entity): Unit = {
+    println("EntityPlayer.did_collide_with_entity(): "+other+" vec3_dist(pos, other.pos)="+vec3_dist(pos, other.pos)+" this.size.y="+ this.size.y+ ", other.size.y="+ other.size.y+" huh="+(this.size.y+other.size.y))
+  }
+  */
 
 }
 
