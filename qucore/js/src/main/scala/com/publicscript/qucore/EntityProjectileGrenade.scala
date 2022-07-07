@@ -2,8 +2,7 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_dist,scale}
 import com.publicscript.qucore.Resources.{model_explosion,model_grenade,sfx_grenade_bounce,sfx_grenade_explode}
-import com.publicscript.qucore.Game.{game_time,game_spawn}
-import com.publicscript.qucore.Render.{r_push_light}
+import com.publicscript.qucore.Game.{game_time,game_spawn,render}
 
 class EntityProjectileGrenade(apos:Vec3) extends Entity(apos) {
 
@@ -18,7 +17,7 @@ class EntityProjectileGrenade(apos:Vec3) extends Entity(apos) {
   override def update() = {
     super.update_physics()
     this.draw_model()
-    r_push_light(vec3_add(this.pos, vec3(0, 16, 0)), (Math.sin(game_time * 10) + 2) * 0.5, 255, 32, 0)
+    render.push_light(vec3_add(this.pos, vec3(0, 16, 0)), (Math.sin(game_time * 10) + 2) * 0.5, 255, 32, 0)
     this.f = if (this.on_ground) 5 else 0.5
   }
 

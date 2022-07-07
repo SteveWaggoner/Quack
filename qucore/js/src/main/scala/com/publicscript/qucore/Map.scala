@@ -1,25 +1,26 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.Audio.audio_ctx
-
 import scala.scalajs.js.typedarray.Uint8Array
 import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_add, vec3_length, vec3_mulf, vec3_normalize, vec3_sub}
-import com.publicscript.qucore.Render.{r_draw, r_push_block, r_num_verts}
-import com.publicscript.qucore.Game.game_spawn
-import com.publicscript.qucore.{Entity, EntityPlayer}
-import org.scalajs.dom
-import org.scalajs.dom.{AudioBuffer, html}
+import com.publicscript.qucore.Game.{game_spawn,render}
 
+import org.scalajs.dom
+
+import scala.concurrent.Future
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
 import scala.scalajs.js
 
-
 object Map {
+  case class MapEntity(entity_name:String, x:Int, y:Int, z:Int, data1:Int, data2:Int)
+  case class MapRender (block:Int, texture:Int)
+  case class MapData(collision_map:Uint8Array, entity:Array[MapEntity], render:Array[MapRender])
+}
 
-  var map : MapData = null
-  val map_size = 128
+
+class Map {
+
+  private var map : Map.MapData = null
+  private val map_size = 128
 
   /* Parse map container format
   typedef struct {
@@ -49,11 +50,8 @@ object Map {
   the texture index to use for the following blocks.
 */
 
-  case class MapEntity(entity_name:String,x:Int,y:Int,z:Int,data1:Int,data2:Int)
-  case class MapRender (block:Int, texture:Int)
-  case class MapData(collision_map:Uint8Array, entity:Array[MapEntity], render:Array[MapRender])
   // Entity Id to class - must be consistent with map_packer.c line ~900
-  val id_to_entity_name = scala.collection.immutable.Map[Int,String](
+  private val id_to_entity_name = scala.collection.immutable.Map[Int,String](
     0 -> "player",
     1 -> "grunt",
     2 -> "enforcer",
@@ -73,11 +71,9 @@ object Map {
     16->"torch"
   )
 
-  def parse_map_container(data: Uint8Array): Array[MapData] = {
+  private def parse_map_container(data: Uint8Array): Array[Map.MapData] = {
 
-    println("start parse_map_container r_num_verts="+r_num_verts)
-
-    val maps = new ArrayBuffer[MapData](0)
+    val maps = new ArrayBuffer[Map.MapData](0)
     var i = 0
     while (i < data.length) {
 
@@ -86,7 +82,7 @@ object Map {
 
       val cm = new Uint8Array(map_size * map_size * map_size >> 3) // collision map
 
-      var r = new ArrayBuffer[MapRender](0)
+      var r = new ArrayBuffer[Map.MapRender](0)
       var t = -1
 
       var j = i
@@ -110,7 +106,7 @@ object Map {
 
         // Submit the block to the render buffer; we get the vertex offset
         // of this block within the buffer back, so we can draw it later
-        val b = r_push_block(x << 5, y << 4, z << 5,
+        val b = render.push_block(x << 5, y << 4, z << 5,
           sx << 5, sy << 4, sz << 5,
           t)
 
@@ -125,7 +121,7 @@ object Map {
           }
         }
 
-        r.addOne(MapRender(texture=t, block=b))
+        r.addOne(Map.MapRender(texture=t, block=b))
       }
 
       i += blocks_size
@@ -135,112 +131,62 @@ object Map {
       val num_entities = data(i + 0) | (data(i + 1) << 8)
       i += 2
 
-      val e = new ArrayBuffer[MapEntity](0)
+      val e = new ArrayBuffer[Map.MapEntity](0)
       var k = i
       while (k < i + num_entities * 6 /*sizeof(entity_t)*/) {
 
-        val ee = new MapEntity(entity_name = id_to_entity_name(data(k+0)), x = data(k+1), y = data(k+2), z = data(k+3), data1 = data(k+4), data2 = data(k+5))
+        val ee = new Map.MapEntity(entity_name = id_to_entity_name(data(k+0)), x = data(k+1), y = data(k+2), z = data(k+3), data1 = data(k+4), data2 = data(k+5))
         e.addOne(ee)
         k += 6
       }
 
       i += num_entities * 6
 
-      maps.addOne(MapData(collision_map = cm, e.toArray, r.toArray))
+      maps.addOne(Map.MapData(collision_map = cm, e.toArray, r.toArray))
     }
-
-    println("end parse_map_container r_num_verts="+r_num_verts)
 
     maps.toArray
   }
 
-/*
-  import scala.concurrent.Future
-  def audio_load_url_async(url:String): Future[AudioBuffer] = {
 
-    import js.Thenable.Implicits._
-
-    val responseAudioBuffer = for {
-      response <- dom.fetch(url)
-      arrayBuffer <- response.arrayBuffer()
-      audioBuffer <- audio_ctx.decodeAudioData(arrayBuffer)
-    } yield {
-      audioBuffer
-    }
-
-    responseAudioBuffer
-  }
-  */
-
-  /*
-  def updatePre(pre: html.Pre) = {
-    import scala.concurrent
-    .ExecutionContext
-    .Implicits
-    .global
-    import js.Thenable.Implicits._
-    val url =
-      "https://www.boredapi.com/api/activity"
-    val responseText = for {
-      response <- dom.fetch(url)
-      text <- response.text()
-    } yield {
-      text
-    }
-    for (text <- responseText)
-      pre.textContent = text
-  }
-*/
-
-  import scala.concurrent.Future
-  def map_load_container_async(url: String): Future[Array[MapData]] = {
+  def load_container_async(url: String): Future[Array[Map.MapData]] = {
 
     import scala.concurrent.ExecutionContext.Implicits.global
     import js.Thenable.Implicits.thenable2future
-    println("start. map_load_container_async "+url)
+
     val responseMaps = for {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
     } yield {
-      println("yield in map_load_container_async")
+
       parse_map_container(new Uint8Array(arrayBuffer))
     }
-    println("done. map_load_container_async")
+
     responseMaps
   }
 
-/*
-  def map_load_container (path:String): Array[MapData] = {
 
-    val futureMaps = map_load_container_async(path)
-
-    val maps = Await.ready(futureMaps, Duration.Inf).value.get.get
-    return maps
-  }
-*/
-  def map_init(m: MapData) = {
-    println("map_init()")
+  def init(m: Map.MapData) = {
     map = m
-
     // Parse entity data and spawn all entities for this map
     for (e <- map.entity) {
       spawn_entity(e)
     }
   }
 
-  def spawn_entity(e:MapEntity) : Entity = {
+  private def spawn_entity(e:Map.MapEntity) : Entity = {
     //println("spawn_entity e="+e)
     val pos = vec3(e.x*32,e.y*16,e.z*32)
     game_spawn(e.entity_name, pos, e.data1, e.data2)
   }
 
-  def map_block_beneath(pos:Vec3, size:Vec3):Boolean = {
+  def block_beneath(pos:Vec3, size:Vec3):Boolean = {
     map_block_at(pos.x.toInt >> 5, (pos.y - size.y - 8).toInt >> 4, pos.z.toInt >> 5) ||
       map_block_at(pos.x.toInt >> 5, (pos.y - size.y - 24).toInt >> 4, pos.z.toInt >> 5)
   }
 
 
-  def map_block_at(x: Int, y: Int, z: Int):Boolean = {
+  private def map_block_at(x: Int, y: Int, z: Int):Boolean = {
 
     if (map == null) {
       throw new Exception("map_block_at() map is null ?!?!")
@@ -251,11 +197,17 @@ object Map {
     (map.collision_map(cell) & bit) != 0
   }
 
-  def map_line_of_sight(a_par:Vec3, b:Vec3):Boolean = {
-    map_trace(a_par,b)!=null
+  //wall in the way of view
+  def no_line_of_sight(a:Vec3, b:Vec3):Boolean = {
+    !line_of_sight(a, b)
   }
 
-  def map_trace(a_par: Vec3, b: Vec3):Vec3 = {
+  //no wall in the way of view
+  def line_of_sight(a:Vec3, b:Vec3):Boolean = {
+    map_trace(a,b)==null
+  }
+
+  private def map_trace(a_par: Vec3, b: Vec3):Vec3 = {
 
     var a = a_par
     val diff = vec3_sub(b, a)
@@ -270,7 +222,7 @@ object Map {
     null
   }
 
-  def map_block_at_box(box_start: Vec3, box_end: Vec3):Boolean = {
+  def block_at_box(box_start: Vec3, box_end: Vec3):Boolean = {
     for (z <- box_start.z.toInt >> 5 to box_end.z.toInt >> 5) {
       for (y <- box_start.y.toInt >> 4 to box_end.y.toInt >> 4) {
         for (x <- box_start.x.toInt >> 5 to box_end.x.toInt >> 5) {
@@ -283,7 +235,7 @@ object Map {
     false
   }
 
-  def map_draw() : Unit = {
+  def draw() : Unit = {
 
     if ( map == null ) {
       println("Map.map_draw() : map == null ?!?")
@@ -291,14 +243,8 @@ object Map {
     }
 
     val p = vec3()
-
- //   var ii=0
     for (r <- map.render) {
-    //  if (ii % 20 == 1) {
-    //    println("map_draw(): p="+p+"  r="+r)
-        r_draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
-   //   }
-   //   ii = ii + 1
+        render.draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
     }
   }
 

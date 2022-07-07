@@ -1,8 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,scale}
-import com.publicscript.qucore.Render.r_push_light
-import com.publicscript.qucore.Game.game_time
+import com.publicscript.qucore.Game.{game_time,render}
 
 
 class EntityLight(apos:Vec3, alight:Double, acolor:Int) extends Entity(apos) {
@@ -35,7 +34,7 @@ class EntityLight(apos:Vec3, alight:Double, acolor:Int) extends Entity(apos) {
       }
       intensity = scale(game_time, this.spawn_time, this.die_at, 1, 0) * this.light
     }
-    r_push_light(this.pos, intensity, this.color(0), this.color(1), this.color(2))
+    render.push_light(this.pos, intensity, this.color(0), this.color(1), this.color(2))
   }
 
 }

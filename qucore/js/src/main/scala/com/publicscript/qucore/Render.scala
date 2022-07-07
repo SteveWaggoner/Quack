@@ -1,26 +1,25 @@
 package com.publicscript.qucore
 
+import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_face_normal}
+
+import org.scalajs.dom.HTMLCanvasElement
+
 import scala.scalajs.js
 import scala.scalajs.js.typedarray.Float32Array
 import scala.scalajs.js.Any
-import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_face_normal}
-import com.publicscript.qucore.Document.c
-import org.scalajs.dom.HTMLCanvasElement
-
 import scala.collection.mutable.ArrayBuffer
 
+class Render(val canvas: HTMLCanvasElement) {
 
-object Render {
+  private val gl_options = js.Dynamic.literal(antialias = false)
+  private val gl = canvas.getContext("webgl", gl_options) || canvas.getContext("experimental-webgl", gl_options)
 
-  val gl_options = js.Dynamic.literal(antialias = false)
-  val gl = c.getContext("webgl", gl_options) || c.getContext("experimental-webgl", gl_options)
-
-  val R_MAX_VERTS = 1024 * 64
-  val R_MAX_LIGHT_V3 = 64
+  private val R_MAX_VERTS = 1024 * 64
+  private val R_MAX_LIGHT_V3 = 64
 
   // Vertex shader source. This translates the model position & rotation and also
   // mixes positions of two buffers for animations.
-  val R_SOURCE_VS = "precision highp float;" +
+  private val R_SOURCE_VS = "precision highp float;" +
     // Vertex positions, normals and uv coords for the fragment shader
     "varying vec3 vp,vn;" + "varying vec2 vt;" +
     // Input vertex positions & normals and blend vertex positions & normals
@@ -87,7 +86,7 @@ object Render {
             "vec4(vp-c.xyz,1.);" +
     "}"
 
-  val R_SOURCE_FS = "precision highp float;" +
+  private val R_SOURCE_FS = "precision highp float;" +
     // Vertex positions, normals and uv coords
     "varying vec3 vp,vn;" +
     "varying vec2 vt;" +
@@ -115,37 +114,32 @@ object Render {
             ")/16.0;" +  // Reduce final output color for some extra dirty looks
     "}"
 
-  val r_buffer = new Float32Array(R_MAX_VERTS * 8)
-  var r_num_verts = 0
-  val r_light_buffer = new Float32Array(R_MAX_LIGHT_V3 * 3)
-  var r_num_lights = 0
-  val r_textures = new ArrayBuffer[Texture]
-  var r_camera = vec3(0, 0, -50)
-  var r_camera_pitch = 0.2d
-  var r_camera_yaw = 0d
-  var r_draw_calls = ArrayBuffer.empty[DrawCall]
+  private val r_buffer = new Float32Array(R_MAX_VERTS * 8)
+  private var r_num_verts = 0
+  private val r_light_buffer = new Float32Array(R_MAX_LIGHT_V3 * 3)
+  private var r_num_lights = 0
+  private val r_textures = new ArrayBuffer[Texture]
+
+  var camera = vec3(0, 0, -50)
+  var camera_pitch = 0.2d
+  var camera_yaw = 0d
+
+  private var r_draw_calls = ArrayBuffer.empty[DrawCall]
 
 
-  var r_u_camera : Any = null
-  var r_u_lights  : Any = null
-  var r_u_mouse  : Any = null
-  var r_u_pos  : Any = null
-  var r_u_rotation  : Any = null
-  var r_u_frame_mix  : Any = null
+  private var r_u_camera : Any = null
+  private var r_u_lights  : Any = null
+  private var r_u_mouse  : Any = null
+  private var r_u_pos  : Any = null
+  private var r_u_rotation  : Any = null
+  private var r_u_frame_mix  : Any = null
 
-  var r_va_p2: Any = null
-  var r_va_n2:Any = null
+  private var r_va_p2: Any = null
+  private var r_va_n2:Any = null
 
+  r_init()
 
-  var is_r_init=false
-  def r_init() : Unit = {
-
-    if (is_r_init) {
-      println("Already r_init ?!?!")
-      return
-    }
-    is_r_init=true
-
+  private def r_init() : Unit = {
 
     val shader_program = gl.createProgram()
     gl.attachShader(shader_program, r_compile_shader(gl.VERTEX_SHADER, R_SOURCE_VS))
@@ -167,13 +161,10 @@ object Render {
     gl.enable(gl.DEPTH_TEST)
     gl.enable(gl.BLEND)
     gl.enable(gl.CULL_FACE)
-    gl.viewport(0, 0, c.width, c.height)
-
-    println("r_init() c.width="+c.width+"  c.height="+c.height)
-
+    gl.viewport(0, 0, canvas.width, canvas.height)
   }
 
-  def r_compile_shader(shader_type: Any, shader_source: String) = {
+  private def r_compile_shader(shader_type: Any, shader_source: String) = {
 
     val shader = gl.createShader(shader_type)
     gl.shaderSource(shader, shader_source)
@@ -182,19 +173,19 @@ object Render {
     shader
   }
 
-  def r_vertex_attrib(shader_program: Any, attrib_name: String, count: Int, vertex_size: Int, offset: Int) = {
+  private def r_vertex_attrib(shader_program: Any, attrib_name: String, count: Int, vertex_size: Int, offset: Int) = {
     val location = gl.getAttribLocation(shader_program, attrib_name)
     gl.enableVertexAttribArray(location)
     gl.vertexAttribPointer(location, count, gl.FLOAT, false, vertex_size * 4, offset * 4)
     location
   }
 
-  case class Texture(t:scala.scalajs.js.Dynamic, c:HTMLCanvasElement)
+  case class Texture(gl_texture:scala.scalajs.js.Dynamic, canvas:HTMLCanvasElement)
 
   def r_create_texture(c: HTMLCanvasElement) = {
 
-    val t = new Texture(t = gl.createTexture(), c = c)
-    gl.bindTexture(gl.TEXTURE_2D, t.t)
+    val t = new Texture(gl_texture = gl.createTexture(), canvas = c)
+    gl.bindTexture(gl.TEXTURE_2D, t.gl_texture)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST)
@@ -205,32 +196,28 @@ object Render {
     r_textures.addOne(t)
   }
 
-  def r_prepare_frame(r: Double, g: Double, b: Double) = {
+  def prepare_frame(r: Double, g: Double, b: Double) = {
     gl.clearColor(r, g, b, 1)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     r_num_lights = 0
     r_light_buffer.fill(0)
   }
 
-  def r_end_frame() = {
-    gl.uniform4f(r_u_camera, r_camera.x, r_camera.y, r_camera.z, 16.0 / 9)
-    gl.uniform2f(r_u_mouse, r_camera_yaw, r_camera_pitch)
+  def end_frame() = {
+    gl.uniform4f(r_u_camera, camera.x, camera.y, camera.z, 16.0 / 9)
+    gl.uniform2f(r_u_mouse, camera_yaw, camera_pitch)
     gl.uniform3fv(r_u_lights, r_light_buffer)
-
-//    println(" r_end_frame() r_u_lights="+r_u_lights+" r_light_buffer="+r_light_buffer)
 
     var vo = 0d
     var last_texture = -1
 
     for (c <- r_draw_calls) {
 
-      // c = [x, y, z, yaw, pitch, texture, offset1, offset2, mix, length]
-
       // Bind new texture only if it changed from the previous one. The map
       // is sorted by texture indices, so this helps.
       if (last_texture != c.texture) {
         last_texture = c.texture
-        gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).t)
+        gl.bindTexture(gl.TEXTURE_2D, r_textures(last_texture).gl_texture)
       }
 
       gl.uniform3f(r_u_pos, c.x, c.y, c.z)
@@ -246,44 +233,45 @@ object Render {
         gl.vertexAttribPointer(r_va_p2, 3, gl.FLOAT, false, 8 * 4, vo*8*4)
         gl.vertexAttribPointer(r_va_n2, 3, gl.FLOAT, false, 8 * 4, (vo*8+5)*4)
       }
-
- //     println(" r_end_frame() c="+c+"  c.offset1="+c.offset1+"  c.num_verts="+c.num_verts+" vo="+vo+ " c.texture="+c.texture)
-
       gl.drawArrays(gl.TRIANGLES, c.offset1, c.num_verts)
     }
     // Reset draw calls
     r_draw_calls.clear()
   }
 
-  case class DrawCall(x:Double, y:Double, z:Double, yaw:Double, pitch:Double, texture:Int,offset1:Int,offset2:Int,mix:Int,num_verts:Int)
+  case class DrawCall(x:Double, y:Double, z:Double, yaw:Double, pitch:Double,
+                      texture:Int, offset1:Int, offset2:Int, mix:Int, num_verts:Int)
 
-  def r_draw(pos: Vec3, yaw: Double, pitch: Double, texture: Int, f1: Int, f2: Int, mix: Int, num_verts: Int) = {
-    r_draw_calls.addOne(new DrawCall( pos.x, pos.y, pos.z, yaw, pitch, texture, f1, f2, mix, num_verts ))
+  def draw(pos: Vec3, yaw: Double, pitch: Double, texture: Int, offset1: Int, offset2: Int, mix: Int, num_verts: Int) = {
+    r_draw_calls.addOne(new DrawCall( pos.x, pos.y, pos.z, yaw, pitch, texture, offset1, offset2, mix, num_verts ))
   }
 
-  def r_submit_buffer() = {
-    println("r_submit_buffer r_num_verts="+r_num_verts)
+  def submit_buffer() = {
     gl.bufferData(gl.ARRAY_BUFFER, r_buffer.subarray(0, r_num_verts * 8), gl.STATIC_DRAW)
   }
 
-  def r_push_vert(pos: Vec3, normal: Vec3, u: Double, v: Double) = {
+  def start_offset() = {
+    r_num_verts
+  }
+
+  def push_vert(pos: Vec3, normal: Vec3, u: Double, v: Double) = {
     r_buffer.set(js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, u.toFloat, v.toFloat, normal.x.toFloat, normal.y.toFloat, normal.z.toFloat), r_num_verts * 8)
     r_num_verts += 1
   }
 
-  def r_push_quad(v0: Vec3, v1: Vec3, v2: Vec3, v3: Vec3, u: Double, v: Double) = {
+  private def r_push_quad(v0: Vec3, v1: Vec3, v2: Vec3, v3: Vec3, u: Double, v: Double) = {
     val n = vec3_face_normal(v0, v1, v2)
-    r_push_vert(v0, n, u, 0)
-    r_push_vert(v1, n, 0, 0)
-    r_push_vert(v2, n, u, v)
-    r_push_vert(v3, n, 0, v)
-    r_push_vert(v2, n, u, v)
-    r_push_vert(v1, n, 0, 0)
+    push_vert(v0, n, u, 0)
+    push_vert(v1, n, 0, 0)
+    push_vert(v2, n, u, v)
+    push_vert(v3, n, 0, v)
+    push_vert(v2, n, u, v)
+    push_vert(v1, n, 0, 0)
   }
 
-  def r_push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
+  def push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
 
-    val canvas = r_textures(texture).c
+    val canvas = r_textures(texture).canvas
 
     val index = r_num_verts
     val tx = sx / canvas.width
@@ -308,9 +296,9 @@ object Render {
     index
   }
 
-  def r_push_light(pos: Vec3, intensity: Double, r: Double, g: Double, b: Double) = {
+  def push_light(pos: Vec3, intensity: Double, r: Double, g: Double, b: Double) = {
     // Calculate the distance to the light, fade it out between 768--1024
-    val fade = clamp(scale(vec3_dist(pos, r_camera), 768, 1024, 1, 0), 0, 1) * intensity * 10
+    val fade = clamp(scale(vec3_dist(pos, camera), 768, 1024, 1, 0), 0, 1) * intensity * 10
     if (fade > 0 && r_num_lights < R_MAX_LIGHT_V3 / 2) {
       r_light_buffer.set(js.Array(pos.x.toFloat, pos.y.toFloat, pos.z.toFloat, (r * fade).toFloat, (g * fade).toFloat, (b * fade).toFloat), r_num_lights * 6)
       r_num_lights += 1

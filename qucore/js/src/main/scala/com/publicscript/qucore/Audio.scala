@@ -50,15 +50,54 @@ import org.scalajs.dom.AudioBuffer
 import org.scalajs.dom
 
 object Audio {
+  case class Instrument(osc1_oct: Double,
+                        osc1_det: Double,
+                        osc1_detune: Double,
+                        osc1_xenv: Boolean,
+                        osc1_vol: Double,
+                        osc1_waveform: Int,
+
+                        osc2_oct: Double,
+                        osc2_det: Double,
+                        osc2_detune: Double,
+                        osc2_xenv: Boolean,
+                        osc2_vol: Double,
+                        osc2_waveform: Int,
+
+                        noise_fader: Double,
+                        attack: Double,
+                        sustain: Double,
+                        release: Double,
+                        master: Double,
+
+                        fx_filter: Int,
+                        fx_freq: Double,
+                        fx_resonance: Double,
+                        fx_delay_time: Double,
+                        fx_delay_amt: Double,
+                        fx_pan_freq_p: Double,
+                        fx_pan_amt: Double,
+
+                        lfo_osc1_freq: Boolean,
+                        lfo_fx_freq: Boolean,
+                        lfo_freq_p: Double,
+                        lfo_amt: Double,
+                        lfo_waveform: Long)
+  case class Track(instrument: Audio.Instrument, pattern: Array[Int], notes: Array[Array[Int]])
+}
+
+class Audio {
 
   private var audio_ctx: AudioContext = null
 
-  val AUDIO_SAMPLERATE = 44100
-  val AUDIO_TAB_SIZE = 4096
-  val AUDIO_TAB_MASK = AUDIO_TAB_SIZE - 1
-  val AUDIO_TAB = new Float32Array(AUDIO_TAB_SIZE * 4)
+  private val AUDIO_SAMPLERATE = 44100
+  private val AUDIO_TAB_SIZE = 4096
+  private val AUDIO_TAB_MASK = AUDIO_TAB_SIZE - 1
+  private val AUDIO_TAB = new Float32Array(AUDIO_TAB_SIZE * 4)
 
-  def audio_init() = {
+  audio_init()
+
+  private def audio_init() = {
     audio_ctx = new AudioContext()
     audio_ctx.resume()
     // Generate the lookup tables
@@ -73,7 +112,7 @@ object Audio {
     }
   }
 
-  def audio_play(buffer: AudioBuffer, volume: Double = 1, loop: Boolean = false, pan: Double = 0) = {
+  def play(buffer: AudioBuffer, volume: Double = 1, loop: Boolean = false, pan: Double = 0) = {
     val gain = audio_ctx.createGain()
     val source = audio_ctx.createBufferSource()
     val panner = audio_ctx.createStereoPanner()
@@ -89,7 +128,7 @@ object Audio {
 
 
   import scala.concurrent.Future
-  def audio_load_url_async(url:String): Future[AudioBuffer] = {
+  private def audio_load_url_async(url:String): Future[AudioBuffer] = {
 
     import js.Thenable.Implicits._
 
@@ -104,23 +143,22 @@ object Audio {
     responseAudioBuffer
   }
 
-  def audio_play_async(buffer: Future[AudioBuffer], volume: Double = 1, loop: Boolean = false, pan: Double = 0) = {
+  private def audio_play_async(buffer: Future[AudioBuffer], volume: Double = 1, loop: Boolean = false, pan: Double = 0) = {
 
     buffer onComplete {
-      result => audio_play(result.get, volume, loop, pan)
+      result => play(result.get, volume, loop, pan)
     }
   }
 
-  def audio_get_ctx_buffer(buf_l: Float32Array, buf_r: Float32Array) = {
+  private def audio_get_ctx_buffer(buf_l: Float32Array, buf_r: Float32Array) = {
     val buffer = audio_ctx.createBuffer(2, buf_l.length, AUDIO_SAMPLERATE)
     buffer.getChannelData(0).set(buf_l)
     buffer.getChannelData(1).set(buf_r)
     buffer
   }
 
-  case class Instrument(osc1_oct: Double, osc1_det: Double, osc1_detune: Double, osc1_xenv: Boolean, osc1_vol: Double, osc1_waveform: Int, osc2_oct: Double, osc2_det: Double, osc2_detune: Double, osc2_xenv: Boolean, osc2_vol: Double, osc2_waveform: Int, noise_fader: Double, attack: Double, sustain: Double, release: Double, master: Double, fx_filter: Int, fx_freq: Double, fx_resonance: Double, fx_delay_time: Double, fx_delay_amt: Double, fx_pan_freq_p: Double, fx_pan_amt: Double, lfo_osc1_freq: Boolean, lfo_fx_freq: Boolean, lfo_freq_p: Double, lfo_amt: Double, lfo_waveform: Long)
 
-  def audio_generate_sound(row_len: Int, note: Int, buf_l: Float32Array, buf_r: Float32Array, write_pos: Int, instrument: Instrument) = {
+  private def audio_generate_sound(row_len: Int, note: Int, buf_l: Float32Array, buf_r: Float32Array, write_pos: Int, instrument: Audio.Instrument) = {
     val osc_lfo_offset = instrument.lfo_waveform * AUDIO_TAB_SIZE
     val osc1_offset = instrument.osc1_waveform * AUDIO_TAB_SIZE
     val osc2_offset = instrument.osc2_waveform * AUDIO_TAB_SIZE
@@ -195,9 +233,8 @@ object Audio {
     }
   }
 
-  case class Track(instrument: Instrument, pattern: Array[Int], notes: Array[Array[Int]])
 
-  def audio_create_song(row_len: Int, pattern_len: Int, song_len: Int, tracks: Array[Track]) = {
+  def create_song(row_len: Int, pattern_len: Int, song_len: Int, tracks: Array[Audio.Track]) = {
     val num_samples = AUDIO_SAMPLERATE * song_len
     val mix_buf_l = new Float32Array(num_samples)
     val mix_buf_r = new Float32Array(num_samples)
@@ -209,8 +246,6 @@ object Audio {
       val delay_shift = (track.instrument.fx_delay_time * row_len).toInt >> 1
       val delay_amount = track.instrument.fx_delay_amt / 255
 
- //     var xx = 0
-
       for (p <- 0 until pattern_len) {
         val note_index = if (p < track.pattern.length) track.pattern(p) - 1 else -1
 
@@ -220,15 +255,10 @@ object Audio {
             val note = track.notes(note_index)(row)
 
             if (note!=0) {
-      //        println("new row_len=" + row_len + " note=" + note + " write_pos=" + write_pos)
               audio_generate_sound(row_len, note.toInt, buf_l, buf_r, write_pos, track.instrument)
             }
           }
           write_pos += row_len
-
-    //      xx = xx + 1
-     //     println("xx="+xx+" p="+p+"  track[1].length = "+track.pattern.length+"  huh="+" write_pos="+write_pos)
-
         }
       }
 
@@ -241,7 +271,7 @@ object Audio {
     audio_get_ctx_buffer(mix_buf_l, mix_buf_r)
   }
 
-  def audio_create_sound(note: Int, instrument: Instrument, row_len: Int = 5605) = {
+  def create_sound(note: Int, instrument: Audio.Instrument, row_len: Int = 5605) = {
     val delay_shift = (instrument.fx_delay_time * row_len).toInt >> 1
     val delay_amount = instrument.fx_delay_amt / 255
     val num_samples = (instrument.attack + instrument.sustain + instrument.release + delay_shift * 32 * delay_amount).toInt
@@ -253,7 +283,7 @@ object Audio {
     audio_get_ctx_buffer(buf_l, buf_r)
   }
 
-  def audio_apply_delay(shift: Int, amount: Double, buf_l: Float32Array, buf_r: Float32Array) = {
+  private def audio_apply_delay(shift: Int, amount: Double, buf_l: Float32Array, buf_r: Float32Array) = {
     for (i <- 0 until buf_l.length - shift) {
       buf_l(i + shift) += (buf_r(i) * amount).toFloat
       buf_r(i + shift) += (buf_l(i) * amount).toFloat

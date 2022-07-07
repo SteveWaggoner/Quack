@@ -1,22 +1,18 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_rotate_yaw_pitch}
-import com.publicscript.qucore.Audio.audio_play
-import com.publicscript.qucore.Game.{game_spawn}
-
+import com.publicscript.qucore.Game.{game_spawn,audio}
 import com.publicscript.qucore.Resources.{model_shotgun,sfx_shotgun_shoot,sfx_shotgun_reload,model_nailgun,sfx_nailgun_shoot,model_grenadelauncher,sfx_grenade_shoot}
-
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 
 import scala.scalajs.js.timers._
-
 
 import org.scalajs.dom.AudioBuffer
 
 class Weapon {
 
   var texture = -1
-  var model : Model.Model = null
+  var model : Model.ModelRender = null
   var reload = 0d
 
   var ammo = 0
@@ -30,7 +26,7 @@ class Weapon {
     if (this.needs_ammo) {
       this.ammo -= 1
     }
-    audio_play(this.sound)
+    audio.play(this.sound)
     this.spawn_projectile(pos, yaw, pitch)
   }
 
@@ -65,8 +61,8 @@ class WeaponShotgun extends Weapon {
 
   override def spawn_projectile(pos: Vec3, yaw: Double, pitch: Double) = {
 
-    setTimeout(200) { audio_play(sfx_shotgun_reload) }
-    setTimeout(350) { audio_play(sfx_shotgun_reload) }
+    setTimeout(200) { audio.play(sfx_shotgun_reload) }
+    setTimeout(350) { audio.play(sfx_shotgun_reload) }
 
     for (i <- 0 until 8) {
       super.spawn_projectile(pos, yaw + Math.random() * 0.08 - 0.04, pitch + Math.random() * 0.08 - 0.04)

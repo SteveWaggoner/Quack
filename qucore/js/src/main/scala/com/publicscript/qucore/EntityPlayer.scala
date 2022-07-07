@@ -2,9 +2,7 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils._
 import com.publicscript.qucore.Game._
-import com.publicscript.qucore.Audio.audio_play
 import com.publicscript.qucore.Resources.{sfx_hurt, sfx_no_ammo}
-import com.publicscript.qucore.Render.{r_camera, r_camera_pitch, r_camera_yaw, r_draw}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 import com.publicscript.qucore.Input._
 
@@ -67,7 +65,7 @@ class EntityPlayer(ap: Vec3, p1: Any, p2: Any) extends Entity(ap) {
     if (key_action && shoot_wait < 0) {
       this.can_shoot_at = game_time + weapon.reload
       if (weapon.needs_ammo && weapon.ammo == 0) {
-        audio_play(sfx_no_ammo)
+        audio.play(sfx_no_ammo)
       } else {
         println("1weapon.shoot() game_entities.length="+game_entities.length)
         weapon.shoot(this.pos, this.yaw, this.pitch)
@@ -82,18 +80,20 @@ class EntityPlayer(ap: Vec3, p1: Any, p2: Any) extends Entity(ap) {
     this.f = if (this.on_ground) 10 else 2.5
     this.update_physics()
 
-    r_camera.x = this.pos.x
-    r_camera.z = this.pos.z
+    render.camera.x = this.pos.x
+    render.camera.z = this.pos.z
     // Smooth step up on stairs
-    r_camera.y = this.pos.y + 8 - clamp(game_time - this.stepped_up_at, 0, 0.1) * -160
-    r_camera_yaw = this.yaw
-    r_camera_pitch = this.pitch
+    render.camera.y = this.pos.y + 8 - clamp(game_time - this.stepped_up_at, 0, 0.1) * -160
+    render.camera_yaw = this.yaw
+    render.camera_pitch = this.pitch
     // Draw weapon at camera position at an offset and add the current
     // recoil (calculated from shoot_wait and weapon._reload) accounting
     // for the current view yaw/pitch
 
 
-    r_draw(vec3_add(r_camera, vec3_rotate_yaw_pitch(vec3(0, -10d + Math.sin(this.bob) * 0.3, 12d + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)), this.yaw + Math.PI / 2, this.pitch, weapon.texture, weapon.model.f(0), weapon.model.f(0), 0, weapon.model.nv)
+    render.draw(vec3_add(render.camera, vec3_rotate_yaw_pitch(vec3(0, -10d + Math.sin(this.bob) * 0.3, 12d + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)),
+      this.yaw + Math.PI / 2, this.pitch,
+      weapon.texture, weapon.model.frames(0), weapon.model.frames(0), 0, weapon.model.num_verts)
 
     h.textContent = this.health.toString
     a.textContent = if (weapon.needs_ammo) weapon.ammo.toString else "∞"
@@ -103,7 +103,7 @@ class EntityPlayer(ap: Vec3, p1: Any, p2: Any) extends Entity(ap) {
   }
 
   override def receive_damage(from: Any, amount: Double) = {
-    audio_play(sfx_hurt)
+    audio.play(sfx_hurt)
     super.receive_damage(from, amount)
   }
 
@@ -116,13 +116,6 @@ class EntityPlayer(ap: Vec3, p1: Any, p2: Any) extends Entity(ap) {
     }
 
   }
-
-  //debug
-  /*
-  override def did_collide_with_entity(other: Entity): Unit = {
-    println("EntityPlayer.did_collide_with_entity(): "+other+" vec3_dist(pos, other.pos)="+vec3_dist(pos, other.pos)+" this.size.y="+ this.size.y+ ", other.size.y="+ other.size.y+" huh="+(this.size.y+other.size.y))
-  }
-  */
 
 }
 

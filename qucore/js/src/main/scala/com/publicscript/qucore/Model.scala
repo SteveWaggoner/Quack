@@ -5,17 +5,11 @@ import scala.scalajs.js
 import scala.scalajs.js.typedarray.{Float32Array, Uint8Array}
 import org.scalajs.dom
 import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_face_normal}
-import com.publicscript.qucore.Render.{r_num_verts, r_push_vert}
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 object Model {
 
   case class RmfVert(x: Int, y: Int, z: Int)
-
   case class RmfIndices(a_address_inc: Int, b_index: Int, c_index: Int)
-
   case class RmfModel(num_frames: Int, num_vertices: Int, num_indices: Int, vertices: Array[RmfVert] = new Array[RmfVert](0), indices: Array[RmfIndices] = new Array[RmfIndices](0))
 
   /* Parse Retarded Model Format (.rmf):
@@ -49,9 +43,6 @@ object Model {
       val verts = new ArrayBuffer[RmfVert](0)
       for (j <- 0 until num_frames * num_verts) {
         val vert = new RmfVert(data(i + 0), data(i + 1), data(i + 2))
-
-    //    println( " model="+models.length+"  vert "+j+"  "+vert)
-
         verts.addOne(vert)
         i += 3
       }
@@ -59,9 +50,6 @@ object Model {
       val indices = new ArrayBuffer[RmfIndices](0)
       for (j <- 0 until num_indices) {
         val indice = new RmfIndices(data(i + 0), data(i + 1), data(i + 2))
-
-   //     println( " indice="+indices.length+"  indice "+j+"  "+indice)
-
         indices.addOne(indice)
         i += 3
       }
@@ -74,7 +62,7 @@ object Model {
 
   import scala.concurrent.Future
 
-  def model_load_container_async(url: String): Future[Array[RmfModel]] = {
+  def model_load_container_async(url: String): Future[Array[Model.RmfModel]] = {
 
     import scala.concurrent.ExecutionContext.Implicits.global
     import js.Thenable.Implicits.thenable2future
@@ -84,25 +72,22 @@ object Model {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
     } yield {
-      parse_model_container(new Uint8Array(arrayBuffer))
+      Model.parse_model_container(new Uint8Array(arrayBuffer))
     }
 
     responseModels
   }
 
-/*
-  def model_load_container (path:String): Array[RmfModel] = {
 
-    val futureModels = model_load_container_async(path)
 
-    val models = Await.ready(futureModels, Duration.Inf).value.get.get
-    return models
-  }
-*/
   case class UV(u: Double, v: Double)
-  case class Model(f: Array[Int], var nv: Int)
+  case class ModelRender(frames: Array[Int], var num_verts: Int)
+}
 
-  def model_init(model: RmfModel, sx: Double = 1, sy: Double = 1, sz: Double = 1) : Model = {
+
+class Model(render: Render) {
+
+  def model_init(model: Model.RmfModel, sx: Double = 1, sy: Double = 1, sz: Double = 1) : Model.ModelRender = {
     // Load header, prepare buffers
     var j = 0
 
@@ -118,8 +103,6 @@ object Model {
     var max_y = -16f
 
     var i = 0
-
-    val before_r_num_verts = r_num_verts
 
     for (j <- 0 until model.vertices.length) {
 
@@ -164,12 +147,12 @@ object Model {
     // Capture the current vertex offset for the first vertex of each frame.
     for (frame_index <- 0 until model.num_frames) {
 
-      frames.addOne(r_num_verts)
+      frames.addOne(render.start_offset())
 
       val vertex_offset = frame_index * model.num_vertices * 3
 
       val mv = new Array[Vec3](3)
-      val uv = new Array[UV](3)
+      val uv = new Array[Model.UV](3)
 
       for (i <- 0 until model.num_indices * 3 by 3) {
 
@@ -177,23 +160,20 @@ object Model {
           val idx = indices(i + face_vertex) * 3
 
           mv(face_vertex) = vec3(vertices(vertex_offset + idx + 0), vertices(vertex_offset + idx + 1), vertices(vertex_offset + idx + 2))
-          uv(face_vertex) = UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
+          uv(face_vertex) = Model.UV(u = vertices(idx + 0) * uf + u, v = vertices(idx + 1) * vf + v)
         }
 
         val n = vec3_face_normal(mv(2), mv(1), mv(0))
 
-        r_push_vert(mv(2), n, uv(2).u, uv(2).v)
-        r_push_vert(mv(1), n, uv(1).u, uv(1).v)
-        r_push_vert(mv(0), n, uv(0).u, uv(0).v)
+        render.push_vert(mv(2), n, uv(2).u, uv(2).v)
+        render.push_vert(mv(1), n, uv(1).u, uv(1).v)
+        render.push_vert(mv(0), n, uv(0).u, uv(0).v)
       }
     }
 
-
-    val inc_r_num_verts = r_num_verts - before_r_num_verts
-
-    new Model(
-      f = frames.toArray,
-      nv = model.num_indices * 3
+    new Model.ModelRender(
+      frames = frames.toArray,
+      num_verts = model.num_indices * 3
     )
   }
 }

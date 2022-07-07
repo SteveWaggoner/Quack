@@ -1,11 +1,8 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_2d_angle,vec3_sub,vec3_add,vec3_mulf,vec3_mul,vec3_length,vec3_clone}
-import com.publicscript.qucore.Game.{game_tick, game_time,game_spawn,game_entities_friendly,game_entities_enemies}
-import com.publicscript.qucore.Audio.audio_play
-import com.publicscript.qucore.Render.{r_draw,r_camera,r_camera_yaw}
-import com.publicscript.qucore.Model.Model
-import com.publicscript.qucore.Map.{map_block_at,map_block_at_box,map_block_beneath}
+import com.publicscript.qucore.Game.{render, audio, map, game_tick, game_time,game_spawn,game_entities_friendly,game_entities_enemies}
+import com.publicscript.qucore.Model.ModelRender
 import org.scalajs.dom.AudioBuffer
 
 
@@ -63,7 +60,7 @@ class Entity(var pos: Vec3) {
 
     case class Anim(var speed:Double, var frame:Array[Int])
 
-    var model : Option[Model] = None
+    var model : Option[ModelRender] = None
     var check_entities = Array.empty[Entity]
     var check_against: Int = Entity.ENTITY_GROUP_NONE
     var texture : Option[Int] = None
@@ -199,11 +196,11 @@ class Entity(var pos: Vec3) {
       }
       // Check if there's no block beneath this point. We want the AI to keep
       // off of ledges.
-      if (on_ground && keep_off_ledges && !map_block_beneath(p, this.size)) {
+      if (on_ground && keep_off_ledges && !map.block_beneath(p, this.size)) {
         return true
       }
       // Do the normal collision check with the whole box
-      map_block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
+      map.block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
     }
 
     def did_collide(axis: Int) = {
@@ -232,11 +229,11 @@ class Entity(var pos: Vec3) {
         mix = 1 - mix
       }
 
-      r_draw(pos, yaw, pitch, texture.get, model.get.f(frame_cur), model.get.f(frame_next), mix, model.get.nv)
+      render.draw(pos, yaw, pitch, texture.get, model.get.frames(frame_cur), model.get.frames(frame_next), mix, model.get.num_verts)
 
     }
 
-    def spawn_particles(amount: Int, speed: Double = 1, model: Model, texture: Int, lifetime: Double) = {
+    def spawn_particles(amount: Int, speed: Double = 1, model: ModelRender, texture: Int, lifetime: Double) = {
       for (i <- 0 until amount) {
         val particle = game_spawn("particle", pos)
         particle.model = Some(model)
@@ -256,9 +253,9 @@ class Entity(var pos: Vec3) {
     }
 
     def play_sound(sound: AudioBuffer) = {
-      val volume = clamp(scale(vec3_dist(this.pos, r_camera), 64, 1200, 1, 0), 0, 1)
-      val pan = Math.sin(vec3_2d_angle(this.pos, r_camera) - r_camera_yaw) * -1
-      audio_play(sound, volume, false, pan)
+      val volume = clamp(scale(vec3_dist(this.pos, render.camera), 64, 1200, 1, 0), 0, 1)
+      val pan = Math.sin(vec3_2d_angle(this.pos, render.camera) - render.camera_yaw) * -1
+      audio.play(sound, volume, false, pan)
     }
 
     def kill() = {

@@ -2,9 +2,8 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_pickup_key,sfx_pickup}
-import com.publicscript.qucore.Audio.{audio_play}
 
-import com.publicscript.qucore.Game.{game_show_message,game_entities}
+import com.publicscript.qucore.Game.{game_show_message,game_entities,audio}
 
 class EntityPickupKey(apos:Vec3) extends EntityPickup(apos) {
 
@@ -19,7 +18,7 @@ class EntityPickupKey(apos:Vec3) extends EntityPickup(apos) {
   }
 
   def pickup() = {
-    audio_play(sfx_pickup)
+    audio.play(sfx_pickup)
     game_show_message("YOU GOT THE KEY!")
     for (e <- game_entities) {
       if (e.needs_key) {

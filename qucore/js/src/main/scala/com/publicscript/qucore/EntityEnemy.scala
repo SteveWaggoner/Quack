@@ -1,8 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,vec3_2d_angle,vec3_rotate_y,anglemod,vec3_rotate_yaw_pitch}
-import com.publicscript.qucore.Game.{game_time,game_entities_enemies,game_entity_player,game_spawn}
-import com.publicscript.qucore.Map.{map_trace}
+import com.publicscript.qucore.Game.{game_time,game_entities_enemies,game_entity_player,game_spawn,map}
 
 import com.publicscript.qucore.Resources.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
 
@@ -83,7 +82,7 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       // Try to minimize distance to the player
       if (this.state == this.STATE_FOLLOW) {
         // Do we have a line of sight?
-        if (map_trace(this.pos, game_entity_player.pos) == null) {
+        if (map.line_of_sight(this.pos, game_entity_player.pos) ) {
           this.target_yaw = angle_to_player
         }
         // Are we close enough to attack?
@@ -106,7 +105,7 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       // Wake up from patroling or idlyng if we have a line of sight
       // and are near enough
       if (this.state == this.STATE_PATROL || this.state == this.STATE_IDLE) {
-        if (distance_to_player < 700 && map_trace(this.pos, game_entity_player.pos) == null) {
+        if (distance_to_player < 700 && map.line_of_sight(this.pos, game_entity_player.pos) ) {
           this.set_state(this.STATE_ATTACK_AIM)
         }
       }
@@ -115,7 +114,7 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       if (this.state == this.STATE_ATTACK_AIM) {
         this.target_yaw = angle_to_player
         // No line of sight? Randomly shuffle around :/
-        if (map_trace(this.pos, game_entity_player.pos)!=null) {
+        if (map.no_line_of_sight(this.pos, game_entity_player.pos)) {
           this.set_state(this.STATE_EVADE)
         }
       }
