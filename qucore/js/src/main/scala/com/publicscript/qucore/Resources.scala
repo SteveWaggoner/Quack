@@ -19,7 +19,7 @@ import scala.collection.mutable.ArrayBuffer
 object Resources {
 
   var map_data : Array[MapData] = null
-  var model_data : Array[RmfModel] = null
+  var model_geometry : Array[RmfModel] = null
 
 
   var model_q : Model.ModelRender = null
@@ -85,7 +85,7 @@ object Resources {
   def game_load() = {
 
     // Create textures
-    ttt(texture_data).map(render.r_create_texture)
+    ttt(texture_data).map(render.create_texture)
 
     // Load map & model containers
     import scala.concurrent.ExecutionContext.Implicits.global
@@ -100,7 +100,7 @@ object Resources {
     model_load_container_async("js/target/scala-2.13/classes/build/models").onComplete {
       result => {
         println("loaded Resources.model_data")
-        Resources.model_data = result.get;
+        Resources.model_geometry = result.get;
         init_models();
         game_load_part2()
       }
@@ -109,7 +109,7 @@ object Resources {
   }
 
   def init_models():Unit = {
-    if (Resources.model_data == null ) {
+    if (Resources.model_geometry == null ) {
       throw new Exception("Why call init_models() if model_data is null?!?")
     }
 
@@ -131,38 +131,38 @@ object Resources {
       // 6: nailgun
       // 7: torch
 
-      model_q = model.model_init(model_data(3))
-      model_explosion = model.model_init(model_data(0), 0.1, 0.1, 0.1)
-      model_blood = model.model_init(model_data(0), 0.1, 0.2, 0.1)
-      model_gib = model.model_init(model_data(0), 0.3, 0.6, 0.3)
-      model_grunt = model.model_init(model_data(1), 2.5, 2.2, 2.5)
-      model_enforcer = model.model_init(model_data(1), 3, 2.7, 3)
-      model_zombie = model.model_init(model_data(1), 1.5, 2, 1.5)
-      model_ogre = model.model_init(model_data(1), 4, 3, 4)
-      model_hound = model.model_init(model_data(4), 2.5, 2.5, 2.5)
+      model_q = model.model_init(model_geometry(3))
+      model_explosion = model.model_init(model_geometry(0), 0.1, 0.1, 0.1)
+      model_blood = model.model_init(model_geometry(0), 0.1, 0.2, 0.1)
+      model_gib = model.model_init(model_geometry(0), 0.3, 0.6, 0.3)
+      model_grunt = model.model_init(model_geometry(1), 2.5, 2.2, 2.5)
+      model_enforcer = model.model_init(model_geometry(1), 3, 2.7, 3)
+      model_zombie = model.model_init(model_geometry(1), 1.5, 2, 1.5)
+      model_ogre = model.model_init(model_geometry(1), 4, 3, 4)
+      model_hound = model.model_init(model_geometry(4), 2.5, 2.5, 2.5)
 
-      model_barrel = model.model_init(model_data(2), 2, 2, 2)
-      model_torch = model.model_init(model_data(7), 0.6, 1, 0.6)
+      model_barrel = model.model_init(model_geometry(2), 2, 2, 2)
+      model_torch = model.model_init(model_geometry(7), 0.6, 1, 0.6)
 
-      model_pickup_nailgun = model.model_init(model_data(6), 1, 1, 1)
-      model_pickup_grenadelauncher = model.model_init(model_data(2), 1, 0.5, 0.5)
-      model_pickup_box = model.model_init(model_data(5), 0.7, 0.7, 0.7)
-      model_pickup_grenades = model.model_init(model_data(5), 0.5, 1, 0.5)
-      model_pickup_key = model.model_init(model_data(5), 0.1, 0.7, 0.1)
+      model_pickup_nailgun = model.model_init(model_geometry(6), 1, 1, 1)
+      model_pickup_grenadelauncher = model.model_init(model_geometry(2), 1, 0.5, 0.5)
+      model_pickup_box = model.model_init(model_geometry(5), 0.7, 0.7, 0.7)
+      model_pickup_grenades = model.model_init(model_geometry(5), 0.5, 1, 0.5)
+      model_pickup_key = model.model_init(model_geometry(5), 0.1, 0.7, 0.1)
 
-      model_door = model.model_init(model_data(5), 5, 5, 0.5)
+      model_door = model.model_init(model_geometry(5), 5, 5, 0.5)
 
-      model_shotgun = model.model_init(model_data(2), 1, 0.2, 0.2)
-      model_grenadelauncher = model.model_init(model_data(2), 0.7, 0.4, 0.4)
-      model_nailgun = model.model_init(model_data(6), 0.7, 0.7, 0.7)
+      model_shotgun = model.model_init(model_geometry(2), 1, 0.2, 0.2)
+      model_grenadelauncher = model.model_init(model_geometry(2), 0.7, 0.4, 0.4)
+      model_nailgun = model.model_init(model_geometry(6), 0.7, 0.7, 0.7)
 
-      model_grenade = model.model_init(model_data(2), 0.3, 0.3, 0.3)
-      model_nail = model.model_init(model_data(2), 0.5, 0.1, 0.1)
+      model_grenade = model.model_init(model_geometry(2), 0.3, 0.3, 0.3)
+      model_nail = model.model_init(model_geometry(2), 0.5, 0.1, 0.1)
 
       // Take some parts from the grunt model and build individual giblet models
       // from it. Arms and legs and stuff...
       for (i <- 0 until 204 by 34) {
-        val m = model.model_init(model_data(1), 2, 1, 2)
+        val m = model.model_init(model_geometry(1), 2, 1, 2)
         m.frames(0) += i
         m.num_verts = 34
         model_gib_pieces.addOne(m)
@@ -206,7 +206,7 @@ object Resources {
 
   def game_load_part2() = {
 
-    if (Resources.map_data != null && Resources.model_data != null ) {
+    if (Resources.map_data != null && Resources.model_geometry != null ) {
 
       println("game_load_part2")
 

@@ -1,10 +1,14 @@
 package com.publicscript.qucore
 
+import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_face_normal}
+
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js
 import scala.scalajs.js.typedarray.{Float32Array, Uint8Array}
+import scala.concurrent.Future
+
 import org.scalajs.dom
-import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_face_normal}
+
 
 object Model {
 
@@ -27,7 +31,7 @@ object Model {
   */
 
 
-  def parse_model_container(data: Uint8Array): Array[RmfModel] = {
+  private def parse_model_container(data: Uint8Array): Array[RmfModel] = {
 
     val models = new ArrayBuffer[RmfModel](0)
     var i = 0
@@ -59,26 +63,21 @@ object Model {
     models.toArray
   }
 
-
-  import scala.concurrent.Future
-
   def model_load_container_async(url: String): Future[Array[Model.RmfModel]] = {
 
     import scala.concurrent.ExecutionContext.Implicits.global
     import js.Thenable.Implicits.thenable2future
-    import js.Thenable.Implicits._
+    //import js.Thenable.Implicits._
 
     val responseModels = for {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
     } yield {
-      Model.parse_model_container(new Uint8Array(arrayBuffer))
+      parse_model_container(new Uint8Array(arrayBuffer))
     }
 
     responseModels
   }
-
-
 
   case class UV(u: Double, v: Double)
   case class ModelRender(frames: Array[Int], var num_verts: Int)

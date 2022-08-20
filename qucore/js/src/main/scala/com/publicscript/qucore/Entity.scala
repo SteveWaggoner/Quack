@@ -32,7 +32,7 @@ object Entity {
       case "light" => new EntityLight(pos, data1.asInstanceOf[Double],data2.asInstanceOf[Int])
       case "trigger_level" => new EntityTriggerLevel(pos)
       case "door" => new EntityDoor(pos, data1.asInstanceOf[Int], data2.asInstanceOf[Double])
-      case "pickupkey" => new EntityPickupKey(pos)
+      case "pickup_key" => new EntityPickupKey(pos)
       case "torch" => new EntityTorch(pos)
 
       case "gib" => new EntityProjectileGib(pos)
@@ -53,15 +53,15 @@ object Entity {
 class Entity(var pos: Vec3) {
 
   override def toString: String = {
-    var ret = super.toString
-    ret = ret + s" (pos=${pos.x},${pos.y},${pos.z})"
+    var ret = this.getClass.getSimpleName
+    ret = ret + s" (pos=${pos.x.round},${pos.y.round},${pos.z.round})(dead=${dead})"
     return ret
   }
 
     case class Anim(var speed:Double, var frame:Array[Int])
 
     var model : Option[ModelRender] = None
-    var check_entities = Array.empty[Entity]
+    var check_entities = Array.empty[Entity]     //TODO: clean out dead entities
     var check_against: Int = Entity.ENTITY_GROUP_NONE
     var texture : Option[Int] = None
 
@@ -99,6 +99,7 @@ class Entity(var pos: Vec3) {
       }
       // Apply Gravity
       this.accel.y = -1200 * gravity
+
       // Integrate acceleration & friction into velocity
       val ff = Math.min(this.f * game_tick, 1)
       this.veloc = vec3_add(this.veloc, vec3_sub(vec3_mulf(this.accel, game_tick), vec3_mul(this.veloc, vec3(ff, 0, ff))))
@@ -186,12 +187,17 @@ class Entity(var pos: Vec3) {
         return false
       }
       for (entity <- check_entities) {
-        if (vec3_dist(p, entity.pos) < (this.size.y + entity.size.y)) {
-          // If we collide with an entity set the step height to 0,
-          // so we don't climb up on its shoulders :/
-          step_height = 0
-          did_collide_with_entity(entity)
-          return true
+        if (!entity.dead) {
+          if (vec3_dist(p, entity.pos) < (this.size.y + entity.size.y)) {
+            // If we collide with an entity set the step height to 0,
+            // so we don't climb up on its shoulders :/
+            step_height = 0
+            did_collide_with_entity(entity)
+
+            println("entity collides: " + this.toString + " " + entity.toString)
+
+            return true
+          }
         }
       }
       // Check if there's no block beneath this point. We want the AI to keep
@@ -200,7 +206,11 @@ class Entity(var pos: Vec3) {
         return true
       }
       // Do the normal collision check with the whole box
-      map.block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
+      val collided_with_box = map.block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
+      if ( collided_with_box ) {
+     //   println("entity collides with box : "+this.toString)
+      }
+      return collided_with_box
     }
 
     def did_collide(axis: Int) = {

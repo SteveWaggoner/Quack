@@ -9,6 +9,7 @@ import scala.scalajs.js.typedarray.Float32Array
 import scala.scalajs.js.Any
 import scala.collection.mutable.ArrayBuffer
 
+
 class Render(val canvas: HTMLCanvasElement) {
 
   private val gl_options = js.Dynamic.literal(antialias = false)
@@ -182,7 +183,7 @@ class Render(val canvas: HTMLCanvasElement) {
 
   case class Texture(gl_texture:scala.scalajs.js.Dynamic, canvas:HTMLCanvasElement)
 
-  def r_create_texture(c: HTMLCanvasElement) = {
+  def create_texture(c: HTMLCanvasElement) = {
 
     val t = new Texture(gl_texture = gl.createTexture(), canvas = c)
     gl.bindTexture(gl.TEXTURE_2D, t.gl_texture)

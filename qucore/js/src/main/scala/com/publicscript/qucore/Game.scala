@@ -17,8 +17,8 @@ object Game {
   var game_entities = new ArrayBuffer[Entity](0)
   var game_entity_player: EntityPlayer = _
 
-  var game_entities_enemies = new ArrayBuffer[Entity](0)
-  var game_entities_friendly = new ArrayBuffer[Entity](0)
+  var game_entities_enemies = new ArrayBuffer[Entity](0)    //TODO: clean out dead entities
+  var game_entities_friendly = new ArrayBuffer[Entity](0)   //TODO: clean out dead entities
   var game_map_index = -1
 
   var game_jump_to_next_level = false
@@ -36,7 +36,8 @@ object Game {
   }
 
   def game_next_level() = {
-    val game_jump_to_next_level = 1
+    println("game_jump_to_next_level = true")
+    game_jump_to_next_level = true
   }
 
   def game_spawn(entity_name:String, pos:Vec3, data1:Any = null, data2:Any = null) : Entity = {
@@ -90,7 +91,13 @@ object Game {
         alive_entities.addOne(entity)
       }
     }
+
+    if(game_entities.length != alive_entities.length) {
+      println("game_entities = " + game_entities.length + "  alive_entities=" + alive_entities.length)
+    }
+
     game_entities = alive_entities
+
 
     map.draw()
     render.end_frame()
