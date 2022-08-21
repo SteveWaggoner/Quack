@@ -2,7 +2,7 @@ package com.publicscript.qucore
 
 import scala.scalajs.js.typedarray.Uint8Array
 import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_add, vec3_length, vec3_mulf, vec3_normalize, vec3_sub}
-import com.publicscript.qucore.Game.{game_spawn,render}
+import com.publicscript.qucore.Game.{render}
 
 import org.scalajs.dom
 
@@ -177,7 +177,7 @@ class Map {
   private def spawn_entity(e:Map.MapEntity) : Entity = {
     //println("spawn_entity e="+e)
     val pos = vec3(e.x*32,e.y*16,e.z*32)
-    game_spawn(e.entity_name, pos, e.data1, e.data2)
+    Game.world.spawn(e.entity_name, pos, e.data1, e.data2)
   }
 
   def block_beneath(pos:Vec3, size:Vec3):Boolean = {

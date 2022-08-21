@@ -1,11 +1,11 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,vec3_2d_angle,vec3_rotate_y,anglemod,vec3_rotate_yaw_pitch}
-import com.publicscript.qucore.Game.{game_time,game_entities_enemies,game_entity_player,game_spawn,map}
-
 import com.publicscript.qucore.Resources.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
 
-abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
+
+
+abstract class EntityEnemy(world:World, apos: Vec3,patrol_dir: Double) extends Entity(world, apos) {
 
   case class State(anim_index: Int, speed: Double, next_state_update: Double, next_state: State = null, name:String="")
 
@@ -49,8 +49,8 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
 
   needs_key = false
 
+  is_enemy = true
 
-  game_entities_enemies.addOne(this)
   // If patrol_dir is non-zero it determines the partrol direction in
   // increments of 90°. Otherwise we just idle.
   if (patrol_dir != 0) {
@@ -65,16 +65,17 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
     this.state = state
     this.anim = this.ANIMS(state.anim_index)
     this.anim_time = 0
-    this.state_update_at = game_time + state.next_state_update + state.next_state_update / 4d * Math.random()
+    this.state_update_at = world.time + state.next_state_update + state.next_state_update / 4d * Math.random()
   }
 
   override def update() = {
     // Is it time for a state update?
-    if (this.state_update_at < game_time) {
+    if (this.state_update_at < world.time) {
       // Choose a new turning bias for FOLLOW/EVADE when we hit a wall
       this.turn_bias = if (Math.random() > 0.5) 0.5 else -0.5
-      val distance_to_player = vec3_dist(this.pos, game_entity_player.pos)
-      val angle_to_player = vec3_2d_angle(this.pos, game_entity_player.pos)
+
+      val distance_to_player = get_distance_to_player()
+      val angle_to_player = get_angle_to_player()
 
       if (this.state.next_state != null) {
         this.set_state(this.state.next_state)
@@ -82,7 +83,7 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       // Try to minimize distance to the player
       if (this.state == this.STATE_FOLLOW) {
         // Do we have a line of sight?
-        if (map.line_of_sight(this.pos, game_entity_player.pos) ) {
+        if (line_of_sight_to_player() ) {
           this.target_yaw = angle_to_player
         }
         // Are we close enough to attack?
@@ -105,7 +106,7 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       // Wake up from patroling or idlyng if we have a line of sight
       // and are near enough
       if (this.state == this.STATE_PATROL || this.state == this.STATE_IDLE) {
-        if (distance_to_player < 700 && map.line_of_sight(this.pos, game_entity_player.pos) ) {
+        if (distance_to_player < 700 && line_of_sight_to_player() ) {
           this.set_state(this.STATE_ATTACK_AIM)
         }
       }
@@ -114,7 +115,7 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       if (this.state == this.STATE_ATTACK_AIM) {
         this.target_yaw = angle_to_player
         // No line of sight? Randomly shuffle around :/
-        if (map.no_line_of_sight(this.pos, game_entity_player.pos)) {
+        if ( ! line_of_sight_to_player()) {
           this.set_state(this.STATE_EVADE)
         }
       }
@@ -136,19 +137,19 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
   def attack(): Unit
 
   def spawn_projectile(entity_name: String, speed: Double, yaw_offset: Double, pitch_offset: Double) : Entity = {
-    val projectile = game_spawn(entity_name, this.pos)
+    val projectile = world.spawn(entity_name, this.pos)
     projectile.check_against = Entity.ENTITY_GROUP_PLAYER
     projectile.yaw = this.yaw + Math.PI / 2
-    projectile.veloc = vec3_rotate_yaw_pitch(vec3(0, 0, speed), this.yaw + yaw_offset, Math.atan2(this.pos.y - game_entity_player.pos.y, vec3_dist(this.pos, game_entity_player.pos)) + pitch_offset)
+    projectile.veloc = vec3_rotate_yaw_pitch(vec3(0, 0, speed), this.yaw + yaw_offset, Math.atan2(this.pos.y - world.player.pos.y, vec3_dist(this.pos, world.player.pos)) + pitch_offset)
     projectile
   }
 
-  override def receive_damage(from: Any, amount: Double) = {
+  override def receive_damage(from: Entity, amount: Double) = {
     super.receive_damage(from, amount)
     this.play_sound(sfx_enemy_hit)
     // Wake up if we're idle or patrolling
     if (this.state == this.STATE_IDLE || this.state == this.STATE_PATROL) {
-      this.target_yaw = vec3_2d_angle(this.pos, game_entity_player.pos)
+      this.target_yaw = get_angle_to_player()
       this.set_state(this.STATE_FOLLOW)
     }
     this.spawn_particles(2, 200, model_blood, 18, 0.5)
@@ -160,7 +161,6 @@ abstract class EntityEnemy(apos: Vec3,patrol_dir: Double) extends Entity(apos) {
       this.spawn_particles(2, 300, m, 18, 1)
     }
     this.play_sound(sfx_enemy_gib)
-    game_entities_enemies = game_entities_enemies.filter((e: Entity) => e != this)
   }
 
   override def did_collide(axis: Int): Unit = {

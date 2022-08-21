@@ -1,11 +1,13 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,scale,vec3_add,vec3_clone,vec3_rotate_y}
-import com.publicscript.qucore.Game.{game_entities_enemies,game_entities_friendly,game_time,game_map_index,game_entity_player,game_show_message,game_tick}
 import com.publicscript.qucore.Resources.{model_door}
 
 
-class EntityDoor(apos:Vec3, tex:Int, dir:Double) extends Entity(apos) {
+import com.publicscript.qucore.Game.{game_map_index,game_show_message}
+
+
+class EntityDoor(world:World, apos:Vec3, tex:Int, dir:Double) extends Entity(world, apos) {
 
     this.model = Some(model_door)
     this.texture = Some(tex)
@@ -19,19 +21,20 @@ class EntityDoor(apos:Vec3, tex:Int, dir:Double) extends Entity(apos) {
     // in the entity data instead :/
     needs_key = game_map_index == 1
     // Doors block enemies and players
-    game_entities_enemies.addOne(this)
-    game_entities_friendly.addOne(this)
+    is_enemy = true
+    is_friend = true
+
 
   override def update():Unit = {
     this.draw_model()
-    if (vec3_dist(this.pos, game_entity_player.pos) < 128) {
+    if (get_distance_to_player() < 128) {
       if (this.needs_key) {
         game_show_message("YOU NEED THE KEY...")
         return
       }
-      this.reset_state_at = game_time + 3
+      this.reset_state_at = world.time + 3
     }
-    if (this.reset_state_at < game_time) {
+    if (this.reset_state_at < world.time) {
       this.open = false // Math.max(0, this.open - game_tick)
     } else {
       this.open = true // Math.min(1, this.open + game_tick)

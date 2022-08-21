@@ -1,7 +1,7 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_rotate_yaw_pitch}
-import com.publicscript.qucore.Game.{game_spawn,audio}
+import com.publicscript.qucore.Game.{audio}
 import com.publicscript.qucore.Resources.{model_shotgun,sfx_shotgun_shoot,sfx_shotgun_reload,model_nailgun,sfx_nailgun_shoot,model_grenadelauncher,sfx_grenade_shoot}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 
@@ -31,7 +31,7 @@ class Weapon {
   }
 
   def spawn_projectile(pos: Vec3, yaw: Double, pitch: Double) = {
-    val projectile = game_spawn(this.projectile_type, vec3_add(pos, vec3_add(vec3(0, 12, 0), vec3_rotate_yaw_pitch(this.projectile_offset, yaw, pitch))))
+    val projectile = Game.world.spawn(this.projectile_type, vec3_add(pos, vec3_add(vec3(0, 12, 0), vec3_rotate_yaw_pitch(this.projectile_offset, yaw, pitch))))
     // Set the projectile velocity, yaw and pitch
     projectile.veloc = vec3_rotate_yaw_pitch(vec3(0, 0, this.projectile_speed), yaw, pitch)
     projectile.yaw = yaw - Math.PI / 2

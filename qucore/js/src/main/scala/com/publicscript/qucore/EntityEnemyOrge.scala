@@ -3,7 +3,7 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.{Vec3,vec3}
 import com.publicscript.qucore.Resources.{model_ogre,sfx_grenade_shoot}
 
-class EntityEnemyOgre(apos:Vec3, apatrol_dir:Double) extends EntityEnemy(apos,apatrol_dir) {
+class EntityEnemyOgre(world:World, apos:Vec3, apatrol_dir:Double) extends EntityEnemy(world,apos,apatrol_dir) {
 
 
   this.model = Some(model_ogre)

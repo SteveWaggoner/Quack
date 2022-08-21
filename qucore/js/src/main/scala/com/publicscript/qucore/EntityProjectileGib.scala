@@ -2,13 +2,13 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_gib,sfx_enemy_hit}
-import com.publicscript.qucore.Game.{game_time}
 
-class EntityProjectileGib(apos:Vec3) extends Entity(apos) {
+
+class EntityProjectileGib(world:World, apos:Vec3) extends Entity(world, apos) {
 
   this.texture = Some(18)
   this.bounciness = 0
-  this.die_at = game_time + 2
+  this.die_at = world.time + 2
   this.model = Some(model_gib)
   this.yaw = Math.random()
   this.pitch = Math.random()

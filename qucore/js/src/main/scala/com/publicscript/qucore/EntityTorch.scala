@@ -2,9 +2,9 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_mulf,vec3_sub}
 import com.publicscript.qucore.Resources.{model_torch}
-import com.publicscript.qucore.Game.{game_time,game_spawn,render,map}
+import com.publicscript.qucore.Game.{render,map}
 
-class EntityTorch(apos:Vec3) extends Entity(apos) {
+class EntityTorch(world:World, apos:Vec3) extends Entity(world, apos) {
 
     this.texture = Some(30)
     this.model = Some(model_torch)
@@ -33,7 +33,7 @@ class EntityTorch(apos:Vec3) extends Entity(apos) {
     if (Math.random() > 0.8) {
       this.light = Math.random()
     }
-    render.push_light(this.light_pos, Math.sin(game_time) + this.light + 6, 255, 192, 16)
+    render.push_light(this.light_pos, Math.sin(world.time) + this.light + 6, 255, 192, 16)
   }
 
 }

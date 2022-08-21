@@ -1,9 +1,11 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_2d_angle,vec3_sub,vec3_add,vec3_mulf,vec3_mul,vec3_length,vec3_clone}
-import com.publicscript.qucore.Game.{render, audio, map, game_tick, game_time,game_spawn,game_entities_friendly,game_entities_enemies}
 import com.publicscript.qucore.Model.ModelRender
 import org.scalajs.dom.AudioBuffer
+
+
+import com.publicscript.qucore.Game.{render, audio, map}
 
 
 object Entity {
@@ -11,46 +13,9 @@ object Entity {
   val ENTITY_GROUP_NONE = 0
   val ENTITY_GROUP_PLAYER = 1
   val ENTITY_GROUP_ENEMY = 2
-  //Entity Factory
-  def apply(entity_name:String, pos:Vec3, data1:Any, data2:Any) : Entity = {
-
-    // Entity Id to class - must be consistent with map_packer.c line ~900
-    entity_name match {
-      case "player" => new EntityPlayer(pos, data1, data2)
-      case "grunt" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-
-      case "enforcer" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "ogre" => new EntityEnemyGrunt(pos, data1.asInstanceOf[Double])
-      case "zombie" => new EntityEnemyZombie(pos, data1.asInstanceOf[Double])
-      case "hound" => new EntityEnemyHound(pos, data1.asInstanceOf[Double])
-      case "nailgun" => new EntityPickupNailgun(pos)
-      case "grenadelauncher" => new EntityPickupGrenadeLauncher(pos)
-      case "health" => new EntityPickupHealth(pos)
-      case "nails" => new EntityPickupNails(pos)
-      case "grenades" => new EntityPickupGrenades(pos)
-      case "barrel" => new EntityBarrel(pos)
-      case "light" => new EntityLight(pos, data1.asInstanceOf[Double],data2.asInstanceOf[Int])
-      case "trigger_level" => new EntityTriggerLevel(pos)
-      case "door" => new EntityDoor(pos, data1.asInstanceOf[Int], data2.asInstanceOf[Double])
-      case "pickup_key" => new EntityPickupKey(pos)
-      case "torch" => new EntityTorch(pos)
-
-      case "gib" => new EntityProjectileGib(pos)
-      case "grenade" => new EntityProjectileGrenade(pos)
-      case "nail" => new EntityProjectileNail(pos)
-      case "plasma" => new EntityProjectilePlasma(pos)
-      case "shell" => new EntityProjectileShell(pos)
-
-      case "particle" => new EntityParticle(pos)
-
-      case _ => throw new IllegalArgumentException(s"Unknown entity name: $entity_name")
-    }
-  }
-
-
 }
 
-class Entity(var pos: Vec3) {
+class Entity(world:World, var pos: Vec3) {
 
   override def toString: String = {
     var ret = this.getClass.getSimpleName
@@ -85,6 +50,23 @@ class Entity(var pos: Vec3) {
 
     var needs_key = false
 
+    var is_enemy  = false
+    var is_friend = false
+
+
+    def get_distance_to_player() : Double = {
+      vec3_dist(this.pos, this.world.player.pos)
+    }
+
+    def get_angle_to_player() : Double = {
+      vec3_2d_angle(this.pos, this.world.player.pos)
+    }
+
+    def line_of_sight_to_player() : Boolean = {
+      map.line_of_sight(this.pos, this.world.player.pos)
+    }
+
+
     def update() = {
       if (model.isDefined) {
         draw_model()
@@ -93,7 +75,7 @@ class Entity(var pos: Vec3) {
 
     def update_physics() : Unit = {
 
-      if (die_at != 0 && die_at < game_time) {
+      if (die_at != 0 && die_at < world.time) {
         kill()
         return
       }
@@ -101,21 +83,18 @@ class Entity(var pos: Vec3) {
       this.accel.y = -1200 * gravity
 
       // Integrate acceleration & friction into velocity
-      val ff = Math.min(this.f * game_tick, 1)
-      this.veloc = vec3_add(this.veloc, vec3_sub(vec3_mulf(this.accel, game_tick), vec3_mul(this.veloc, vec3(ff, 0, ff))))
+      val ff = Math.min(this.f * world.tick, 1)
+      this.veloc = vec3_add(this.veloc, vec3_sub(vec3_mulf(this.accel, world.tick), vec3_mul(this.veloc, vec3(ff, 0, ff))))
 
       // Set up the _check_entities array for entity collisions
-      this.check_entities = check_against match {
-        case Entity.ENTITY_GROUP_NONE => Array()
-        case Entity.ENTITY_GROUP_PLAYER => game_entities_friendly.toArray
-        case Entity.ENTITY_GROUP_ENEMY => game_entities_enemies.toArray
-      }
+      this.check_entities = world.get_entity_group(check_against)
+
 
 
       // Divide the physics integration into 16 unit steps; otherwise fast
       // projectiles may just move through walls.
       val original_step_height = this.step_height
-      val move_dist = vec3_mulf(this.veloc, game_tick)
+      val move_dist = vec3_mulf(this.veloc, world.tick)
       val steps = Math.ceil(vec3_length(move_dist) / 16).toInt
 
       if ( steps == 0) {
@@ -144,7 +123,7 @@ class Entity(var pos: Vec3) {
             this.veloc.x = -this.veloc.x * this.bounciness
           } else {
             last_pos.y += this.step_height
-            this.stepped_up_at = game_time
+            this.stepped_up_at = world.time
           }
           s = steps // stop after this iteration
         }
@@ -159,7 +138,7 @@ class Entity(var pos: Vec3) {
             this.veloc.z = -this.veloc.z * this.bounciness
           } else {
             last_pos.y += this.step_height
-            this.stepped_up_at = game_time
+            this.stepped_up_at = world.time
           }
           s = steps // stop after this iteration
         }
@@ -223,7 +202,7 @@ class Entity(var pos: Vec3) {
 
     def draw_model() = {
 
-      this.anim_time += game_tick
+      this.anim_time += world.tick
       // Calculate which frames to use and how to mix them
       val f = (anim_time / anim.speed).toInt
       var mix = 0 // f - (f | 0) // <- what is this doing????? just make zero for now
@@ -245,15 +224,15 @@ class Entity(var pos: Vec3) {
 
     def spawn_particles(amount: Int, speed: Double = 1, model: ModelRender, texture: Int, lifetime: Double) = {
       for (i <- 0 until amount) {
-        val particle = game_spawn("particle", pos)
+        val particle = world.spawn("particle", pos)
         particle.model = Some(model)
         particle.texture = Some(texture)
-        particle.die_at = (game_time + lifetime + Math.random() * lifetime * 0.2).toInt
+        particle.die_at = (world.time + lifetime + Math.random() * lifetime * 0.2).toInt
         particle.veloc = vec3((Math.random() - 0.5) * speed, Math.random() * speed, (Math.random() - 0.5) * speed)
       }
     }
 
-    def receive_damage(from: Any, amount: Double) = {
+    def receive_damage(from: Entity, amount: Double) = {
       if (!dead) {
         health -= amount
         if (health <= 0) {

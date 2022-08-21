@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_zombie,sfx_enemy_hit}
 
 
-class EntityEnemyZombie(apos:Vec3,apatrol_dir:Double) extends EntityEnemy(apos,apatrol_dir) {
+class EntityEnemyZombie(world:World, apos:Vec3,apatrol_dir:Double) extends EntityEnemy(world,apos,apatrol_dir) {
 
   this.model = Some(model_zombie)
   this.texture = Some(18)
@@ -21,7 +21,7 @@ class EntityEnemyZombie(apos:Vec3,apatrol_dir:Double) extends EntityEnemy(apos,a
   this.set_state(this.STATE_IDLE)
 
 
-  override def receive_damage(from: Any, amount: Double) = {
+  override def receive_damage(from: Entity, amount: Double) = {
     // Ignore damage that's not large enough to gib us
     if (amount > 60) {
       super.receive_damage(from, amount)

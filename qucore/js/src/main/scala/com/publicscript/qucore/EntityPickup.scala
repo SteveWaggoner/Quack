@@ -1,12 +1,11 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist}
-import com.publicscript.qucore.Resources.{model_pickup_box,sfx_enemy_hit}
-import com.publicscript.qucore.Game.{game_entity_player}
+import com.publicscript.qucore.MathUtils.{Vec3,vec3}
+import com.publicscript.qucore.Resources.{model_pickup_box}
 
 
 
-abstract class EntityPickup(apos:Vec3) extends Entity(apos) {
+abstract class EntityPickup(world:World, apos:Vec3) extends Entity(world, apos) {
 
 
   this.model = Some(model_pickup_box)
@@ -20,7 +19,7 @@ abstract class EntityPickup(apos:Vec3) extends Entity(apos) {
       this.update_physics()
     }
     this.draw_model()
-    if (vec3_dist(this.pos, game_entity_player.pos) < 40) {
+    if (get_distance_to_player() < 40) {
       this.pickup()
     }
   }

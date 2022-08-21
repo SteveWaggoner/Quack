@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import org.scalajs.dom.document
 import org.scalajs.dom.{KeyboardEvent, MouseEvent}
-import com.publicscript.qucore.Game.game_time
 import org.scalajs.dom.html.Canvas
 
 
@@ -86,7 +85,7 @@ object Input {
       // Allow for one wheel event every 0.1s. This sucks, but prevents free
       // spinning or touch scrolling mouses (eg. Apple Magic Mouse) from doing
       // wild things.
-      if (game_time - last_wheel_event > 0.1) {
+      if (Game.world.time - last_wheel_event > 0.1) {
 
         if (ev.deltaY > 1) {
           key_next = true

@@ -10,15 +10,11 @@ import scala.scalajs.js.timers._
 
 object Game {
 
-  var game_tick = 0d
-  var game_time = 0.016d
-  var game_real_time_last: Double = _
-  var game_message_timeout : SetTimeoutHandle = _
-  var game_entities = new ArrayBuffer[Entity](0)
-  var game_entity_player: EntityPlayer = _
+  var world = new GameWorld()
 
-  var game_entities_enemies = new ArrayBuffer[Entity](0)    //TODO: clean out dead entities
-  var game_entities_friendly = new ArrayBuffer[Entity](0)   //TODO: clean out dead entities
+
+  var game_message_timeout : SetTimeoutHandle = _
+
   var game_map_index = -1
 
   var game_jump_to_next_level = false
@@ -30,7 +26,8 @@ object Game {
 
   def game_init(map_index: Int) = {
     Document.ts.style.display = "none"
-    game_entities.clear()
+    //game_entities.clear()
+    world.init()
     game_map_index = map_index
     map.init(map_data(game_map_index))
   }
@@ -39,17 +36,6 @@ object Game {
     println("game_jump_to_next_level = true")
     game_jump_to_next_level = true
   }
-
-  def game_spawn(entity_name:String, pos:Vec3, data1:Any = null, data2:Any = null) : Entity = {
-    //println("game_spawn "+entity_name)
-    val entity = Entity(entity_name, pos, data1, data2)
-    game_entities.addOne(entity)
-
-    println("adding "+entity+" to game_Entities, now length is "+game_entities.length)
-
-    entity
-  }
-
 
   def game_show_message(text: String) = {
     Document.msg.textContent = text
@@ -63,40 +49,33 @@ object Game {
     Document.ts.style.display = "block"
   }
 
-  def game_run(time_now_par: Double) : Unit = {
-    var time_now = time_now_par
+  def game_run(time_now: Double) : Unit = {
 
-    time_now *= 0.001
+    world.set_time_now(time_now)
 
-    if ( game_real_time_last == 0)
-      game_real_time_last = time_now
-
-    game_tick = Math.min(time_now - game_real_time_last, 0.05)
-    game_real_time_last = time_now
-    game_time += game_tick
     render.prepare_frame(0.1, 0.2, 0.5)
 
     // Update and render entities
 
     //note: entity.update() might add more game_entities
-    for (entity <- game_entities.clone()) {
+    for (entity <- world.entities.clone()) {
       if (!entity.dead) {
         entity.update()
       }
     }
 
     val alive_entities = new ArrayBuffer[Entity](0)
-    for (entity <- game_entities) {
+    for (entity <- world.entities) {
       if (!entity.dead) {
         alive_entities.addOne(entity)
       }
     }
 
-    if(game_entities.length != alive_entities.length) {
-      println("game_entities = " + game_entities.length + "  alive_entities=" + alive_entities.length)
+    if(world.entities.length != alive_entities.length) {
+      println("game_entities = " + world.entities.length + "  alive_entities=" + alive_entities.length)
     }
 
-    game_entities = alive_entities
+    world.entities = alive_entities
 
 
     map.draw()
@@ -113,7 +92,7 @@ object Game {
         title_show_message("THE END", "THANKS FOR PLAYING ❤")
         Document.h.textContent = ""
         Document.a.textContent = ""
-        game_entity_player.dead = true
+        world.player.dead = true
         // Set camera position for end screen
         render.camera = vec3(1856, 784, 2272)
         render.camera_yaw = 0

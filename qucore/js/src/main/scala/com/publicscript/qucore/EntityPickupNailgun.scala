@@ -2,9 +2,9 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_pickup_nailgun,sfx_pickup}
-import com.publicscript.qucore.Game.{game_entity_player,audio}
+import com.publicscript.qucore.Game.{audio}
 
-class EntityPickupNailgun(apos:Vec3) extends EntityPickup(apos) {
+class EntityPickupNailgun(world:World, apos:Vec3) extends EntityPickup(world, apos) {
 
   this.texture = Some(12)
   this.model = Some(model_pickup_nailgun)
@@ -16,8 +16,8 @@ class EntityPickupNailgun(apos:Vec3) extends EntityPickup(apos) {
 
   def pickup() = {
     audio.play(sfx_pickup)
-    game_entity_player.weapons.addOne(new WeaponNailgun())
-    game_entity_player.weapon_index = game_entity_player.weapons.length - 1
+    world.player.weapons.addOne(new WeaponNailgun())
+    world.player.weapon_index = world.player.weapons.length - 1
     this.kill()
   }
 

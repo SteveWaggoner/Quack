@@ -2,14 +2,14 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3_add,vec3}
 import com.publicscript.qucore.Resources.{model_nail,model_explosion,sfx_nailgun_hit}
-import com.publicscript.qucore.Game.{game_time,game_spawn,render}
+import com.publicscript.qucore.Game.{render}
 
-class EntityProjectilePlasma(apos:Vec3) extends Entity(apos) {
+class EntityProjectilePlasma(world:World, apos:Vec3) extends Entity(world, apos) {
 
     this.texture = Some(21)
     this.model = Some(model_nail)
     this.gravity = 0
-    this.die_at = game_time + 3
+    this.die_at = world.time + 3
 
   override def update():Unit = {
     this.update_physics()
@@ -21,7 +21,7 @@ class EntityProjectilePlasma(apos:Vec3) extends Entity(apos) {
     this.kill()
     this.play_sound(sfx_nailgun_hit)
     this.spawn_particles(2, 80, model_explosion, 8, 0.4)
-    game_spawn("light", vec3_add(this.pos, vec3(0, 10, 0)), 5, 0xf5).die_at = game_time + 0.1
+    world.spawn("light", vec3_add(this.pos, vec3(0, 10, 0)), 5, 0xf5, lifetime=0.1)
   }
 
   override def did_collide_with_entity(other: Entity):Unit = {
