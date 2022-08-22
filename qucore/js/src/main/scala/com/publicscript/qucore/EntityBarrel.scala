@@ -10,10 +10,14 @@ class EntityBarrel(world:World, pos:Vec3) extends Entity(world, pos) {
   this.pitch = Math.PI / 2
   this.health = 10
   this.size = vec3(8, 32, 8)
-
   this.is_enemy = true
 
+  override def update() = {
+    draw_model()
+  }
+
   override def kill() = {
+
     // Deal some damage to nearby entities
     for (entity <- world.get_entity_group(Entity.ENTITY_GROUP_ENEMY)) {
       val dist = vec3_dist(this.pos, entity.pos);

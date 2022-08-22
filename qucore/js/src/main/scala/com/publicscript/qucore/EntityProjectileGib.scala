@@ -16,7 +16,7 @@ class EntityProjectileGib(world:World, apos:Vec3) extends Entity(world, apos) {
   override def update() = {
     super.update_physics()
     this.draw_model()
-    this.f = if (this.on_ground) 15 else 0
+    this.friction = if (this.on_ground) 15 else 0
   }
 
   override def did_collide(axis: Int) : Unit = {

@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_mulf,vec3_sub}
 import com.publicscript.qucore.Resources.{model_torch}
-import com.publicscript.qucore.Game.{render,map}
 
 class EntityTorch(world:World, apos:Vec3) extends Entity(world, apos) {
 
@@ -19,7 +18,7 @@ class EntityTorch(world:World, apos:Vec3) extends Entity(world, apos) {
       if (!done) {
         val trace_end = vec3_add(this.pos, trace_dir)
         //no line of sight mean trace is behide wall (i.e. we are next to that wall)
-        if (map.no_line_of_sight(this.pos, vec3_add(this.pos, trace_dir))) {
+        if (!world.map_line_of_sight(this.pos, vec3_add(this.pos, trace_dir))) {
           this.pos = vec3_add(this.pos, vec3_mulf(trace_dir, 0.4))
           this.light_pos = vec3_sub(this.pos, vec3_mulf(trace_dir, 2))
           done = true //scala break
@@ -29,11 +28,11 @@ class EntityTorch(world:World, apos:Vec3) extends Entity(world, apos) {
     var light = 0d
 
   override def update() = {
-    super.update()
+    draw_model()
     if (Math.random() > 0.8) {
       this.light = Math.random()
     }
-    render.push_light(this.light_pos, Math.sin(world.time) + this.light + 6, 255, 192, 16)
+    world.render_light(this.light_pos, Math.sin(world.time) + this.light + 6, 255, 192, 16)
   }
 
 }

@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_pickup_grenades, sfx_pickup}
-import com.publicscript.qucore.Game.{audio}
 
 
 class EntityPickupGrenades(world:World, apos:Vec3) extends EntityPickup(world, apos) {
@@ -14,7 +13,7 @@ class EntityPickupGrenades(world:World, apos:Vec3) extends EntityPickup(world, a
     for (w <- world.player.weapons) {
       if (w.isInstanceOf[WeaponGrenadeLauncher]) {
         w.ammo += 10
-        audio.play(sfx_pickup)
+        world.audio_play(sfx_pickup)
         this.kill()
       }
     }

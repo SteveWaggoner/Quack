@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_zombie,sfx_enemy_hit}
 
 
-class EntityEnemyZombie(world:World, apos:Vec3,apatrol_dir:Double) extends EntityEnemy(world,apos,apatrol_dir) {
+class EntityEnemyZombie(world:World, pos:Vec3, patrol_dir:Double) extends EntityEnemy(world, pos, patrol_dir) {
 
   this.model = Some(model_zombie)
   this.texture = Some(18)

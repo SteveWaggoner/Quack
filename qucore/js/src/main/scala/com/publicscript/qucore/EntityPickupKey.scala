@@ -3,8 +3,6 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_pickup_key,sfx_pickup}
 
-import com.publicscript.qucore.Game.{game_show_message,audio}
-
 class EntityPickupKey(world:World, apos:Vec3) extends EntityPickup(world,apos) {
 
 
@@ -14,12 +12,12 @@ class EntityPickupKey(world:World, apos:Vec3) extends EntityPickup(world,apos) {
 
   override def update() = {
     this.yaw += 0.02
-    super.update()
+    draw_model()
   }
 
   def pickup() = {
-    audio.play(sfx_pickup)
-    game_show_message("YOU GOT THE KEY!")
+    world.audio_play(sfx_pickup)
+    world.show_game_message("YOU GOT THE KEY!")
 
     world.no_entity_needs_key()
 

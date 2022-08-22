@@ -2,8 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.Resources.{model_pickup_grenadelauncher, sfx_pickup}
 import com.publicscript.qucore.MathUtils.Vec3
-import com.publicscript.qucore.Game.{audio}
-
 
 class EntityPickupGrenadeLauncher(world:World, apos:Vec3) extends EntityPickup(world, apos) {
 
@@ -12,11 +10,11 @@ class EntityPickupGrenadeLauncher(world:World, apos:Vec3) extends EntityPickup(w
 
   override def update() = {
     this.yaw += 0.02
-    super.update()
+    draw_model()
   }
 
   def pickup() = {
-    audio.play(sfx_pickup)
+    world.audio_play(sfx_pickup)
     world.player.weapons.addOne(new WeaponGrenadeLauncher())
     world.player.weapon_index =  world.player.weapons.length-1
     this.kill()

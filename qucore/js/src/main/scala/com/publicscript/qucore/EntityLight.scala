@@ -1,25 +1,19 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,scale}
-import com.publicscript.qucore.Game.{render}
 
 
-class EntityLight(world:World, apos:Vec3, alight:Double, acolor:Int) extends Entity(world, apos) {
+class EntityLight(world:World, pos:Vec3, var light:Double, colorNum:Int) extends Entity(world, pos) {
 
-    var light = alight
-    val spawn_time = world.time
+  val spawn_time = world.time
 
-    val flicker = if (light == 1) true else false
+  val flicker = if (light == 1) true else false
 
-
-    if (acolor==0) {
-      println("no color!")
-    }
-    val color = Array(
-      (acolor & 0x7) << 5,
-      (acolor & 0x1c) << 3,
-      acolor & 0xc0
-    )
+  val color = Array(
+    (colorNum & 0x7) << 5,
+    (colorNum & 0x1c) << 3,
+    colorNum & 0xc0
+  )
 
 
   override def update() = {
@@ -28,13 +22,13 @@ class EntityLight(world:World, apos:Vec3, alight:Double, acolor:Int) extends Ent
     }
     var intensity = this.light
     // If this light is a temporary one, fade it out over its lifetime
-    if (this.die_at!=0) {
+    if (this.die_at != 0) {
       if (this.die_at < world.time) {
         this.kill()
       }
       intensity = scale(world.time, this.spawn_time, this.die_at, 1, 0) * this.light
     }
-    render.push_light(this.pos, intensity, this.color(0), this.color(1), this.color(2))
+    world.render_light(this.pos, intensity, this.color(0), this.color(1), this.color(2))
   }
 
 }

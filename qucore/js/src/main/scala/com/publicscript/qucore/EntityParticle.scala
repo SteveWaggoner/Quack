@@ -3,9 +3,9 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.Vec3
 
 
-class EntityParticle(world:World, apos: Vec3) extends Entity(world, apos) {
+class EntityParticle(world:World, pos: Vec3) extends Entity(world, pos) {
   bounciness = 0.5
-  f = 0.1
+  friction = 0.1
 
   override def update() = {
     this.yaw += this.veloc.y * 0.001

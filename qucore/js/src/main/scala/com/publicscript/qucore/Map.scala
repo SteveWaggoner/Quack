@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import scala.scalajs.js.typedarray.Uint8Array
 import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_add, vec3_length, vec3_mulf, vec3_normalize, vec3_sub}
-import com.publicscript.qucore.Game.{render}
 
 import org.scalajs.dom
 
@@ -106,7 +105,7 @@ class Map {
 
         // Submit the block to the render buffer; we get the vertex offset
         // of this block within the buffer back, so we can draw it later
-        val b = render.push_block(x << 5, y << 4, z << 5,
+        val b = Game.world.render.push_block(x << 5, y << 4, z << 5,
           sx << 5, sy << 4, sz << 5,
           t)
 
@@ -244,7 +243,7 @@ class Map {
 
     val p = vec3()
     for (r <- map.render) {
-        render.draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
+        Game.world.render.draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
     }
   }
 

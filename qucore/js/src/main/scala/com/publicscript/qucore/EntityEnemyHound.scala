@@ -5,7 +5,7 @@ import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_rotate_y}
 import com.publicscript.qucore.Resources.{model_hound,sfx_enemy_hound_attack}
 import scala.scalajs.js.timers._
 
-class EntityEnemyHound(world:World, apos:Vec3,apatrol_dir:Double) extends EntityEnemy(world, apos,apatrol_dir) {
+class EntityEnemyHound(world:World, pos:Vec3, patrol_dir:Double) extends EntityEnemy(world, pos, patrol_dir) {
 
   this.model = Some(model_hound)
   this.texture = Some(22)

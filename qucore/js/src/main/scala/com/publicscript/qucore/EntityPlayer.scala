@@ -1,13 +1,11 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils._
-import com.publicscript.qucore.Game.{game_map_index,audio,render,title_show_message,game_init}
 import com.publicscript.qucore.Resources.{sfx_hurt, sfx_no_ammo}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 import com.publicscript.qucore.Input._
 
 import scala.scalajs.js.timers._
-import com.publicscript.qucore.Document.{a, h, m, mi}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -17,7 +15,7 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
 
   //constructor
   size = vec3(12, 24, 12)
-  f = 10
+  friction = 10
   val speed = 3000d
   step_height = 17
   var can_jump = false
@@ -29,7 +27,7 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
   var weapon_index = 0
 
   // Map 1 needs some rotation of the starting look-at direction
-  yaw += game_map_index * Math.PI
+  yaw += world.map_index * Math.PI
   var bob = 0d
   world.player = this
 
@@ -39,8 +37,8 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
   override def update() = {
 
     // Mouse look
-    this.pitch = clamp(this.pitch + mouse_y * m.value.toDouble * (if (mi.checked) -0.00015 else 0.00015), -1.5, 1.5)
-    this.yaw = (this.yaw + mouse_x * m.value.toDouble * 0.00015) % (Math.PI * 2)
+    this.pitch = clamp(this.pitch + mouse_y * world.mouse_sensitivity() * (if (world.mouse_inverted()) -0.00015 else 0.00015), -1.5, 1.5)
+    this.yaw = (this.yaw + mouse_x * world.mouse_sensitivity() * 0.00015) % (Math.PI * 2)
     // Acceleration in movement direction
     val key_x = (if (key_right) 1 else 0) - (if (key_left) 1 else 0)
     val key_y = (if (key_up) 1 else 0) - (if (key_down) 1 else 0)
@@ -66,49 +64,49 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
     if (key_action && shoot_wait < 0) {
       this.can_shoot_at = world.time + weapon.reload
       if (weapon.needs_ammo && weapon.ammo == 0) {
-        audio.play(sfx_no_ammo)
+        world.audio_play(sfx_no_ammo)
       } else {
         weapon.shoot(this.pos, this.yaw, this.pitch)
         world.spawn("light", this.pos, 10, 0xff, lifetime=0.1)
       }
     }
     this.bob += vec3_length(this.accel) * 0.0001
-    this.f = if (this.on_ground) 10 else 2.5
+    this.friction = if (this.on_ground) 10 else 2.5
     this.update_physics()
 
-    render.camera.x = this.pos.x
-    render.camera.z = this.pos.z
+    world.camera.x = this.pos.x
+    world.camera.z = this.pos.z
     // Smooth step up on stairs
-    render.camera.y = this.pos.y + 8 - clamp(world.time - this.stepped_up_at, 0, 0.1) * -160
-    render.camera_yaw = this.yaw
-    render.camera_pitch = this.pitch
+    world.camera.y = this.pos.y + 8 - clamp(world.time - this.stepped_up_at, 0, 0.1) * -160
+    world.camera_yaw = this.yaw
+    world.camera_pitch = this.pitch
     // Draw weapon at camera position at an offset and add the current
     // recoil (calculated from shoot_wait and weapon._reload) accounting
     // for the current view yaw/pitch
 
 
-    render.draw(vec3_add(render.camera, vec3_rotate_yaw_pitch(vec3(0, -10d + Math.sin(this.bob) * 0.3, 12d + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)),
+    world.render_draw(vec3_add(world.camera, vec3_rotate_yaw_pitch(vec3(0, -10d + Math.sin(this.bob) * 0.3, 12d + clamp(scale(shoot_wait, 0, weapon.reload, 5, 0), 0, 5)), this.yaw, this.pitch)),
       this.yaw + Math.PI / 2, this.pitch,
       weapon.texture, weapon.model.frames(0), weapon.model.frames(0), 0, weapon.model.num_verts)
 
-    h.textContent = this.health.toString
-    a.textContent = if (weapon.needs_ammo) weapon.ammo.toString else "∞"
+    world.show_health(this.health.toString)
+    world.show_ammo( if (weapon.needs_ammo) weapon.ammo.toString else "∞" )
 
     // Debug: a light around the player
     // r_push_light(vec3_add(this.p, vec3(0,64,0)), 10, 255, 192, 32);
   }
 
   override def receive_damage(from: Entity, amount: Double) = {
-    audio.play(sfx_hurt)
+    world.audio_play(sfx_hurt)
     super.receive_damage(from, amount)
   }
 
   override def kill() = {
     super.kill()
-    h.textContent = this.health.toString
-    title_show_message("YOU DIED")
+    world.show_health( this.health.toString )
+    world.show_title_message("YOU DIED")
     setTimeout(2000) {
-      game_init(game_map_index)
+      world.reset_level()
     }
 
   }

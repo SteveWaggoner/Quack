@@ -4,8 +4,7 @@ import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,vec3_2d_angle,vec3
 import com.publicscript.qucore.Resources.{model_blood,sfx_enemy_hit,model_gib_pieces,sfx_enemy_gib}
 
 
-
-abstract class EntityEnemy(world:World, apos: Vec3,patrol_dir: Double) extends Entity(world, apos) {
+abstract class EntityEnemy(world:World, pos: Vec3, patrol_dir: Double) extends Entity(world, pos) {
 
   case class State(anim_index: Int, speed: Double, next_state_update: Double, next_state: State = null, name:String="")
 
@@ -34,9 +33,7 @@ abstract class EntityEnemy(world:World, apos: Vec3,patrol_dir: Double) extends E
   this.keep_off_ledges = true
   this.check_against = Entity.ENTITY_GROUP_PLAYER
 
- // var speed = 196
-
-  var speed = 196 / 4
+  var speed = 196
 
   var attack_distance = 800
   var evade_distance = 96

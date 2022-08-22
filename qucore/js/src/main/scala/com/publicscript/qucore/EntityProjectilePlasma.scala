@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3_add,vec3}
 import com.publicscript.qucore.Resources.{model_nail,model_explosion,sfx_nailgun_hit}
-import com.publicscript.qucore.Game.{render}
 
 class EntityProjectilePlasma(world:World, apos:Vec3) extends Entity(world, apos) {
 
@@ -14,7 +13,7 @@ class EntityProjectilePlasma(world:World, apos:Vec3) extends Entity(world, apos)
   override def update():Unit = {
     this.update_physics()
     this.draw_model()
-    render.push_light(this.pos, 5, 255, 128, 0)
+    world.render_light(this.pos, 5, 255, 128, 0)
   }
 
   override def did_collide(axis: Int):Unit = {

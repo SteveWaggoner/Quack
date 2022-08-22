@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.{Vec3,vec3_add,vec3}
 import com.publicscript.qucore.Resources.{model_grunt,sfx_shotgun_shoot}
 
 
-class EntityEnemyGrunt(world:World, p: Vec3, apatrol_dir: Double) extends EntityEnemy(world, p,apatrol_dir) {
+class EntityEnemyGrunt(world:World, pos: Vec3, patrol_dir: Double) extends EntityEnemy(world, pos, patrol_dir) {
 
   model = Some(model_grunt)
   texture = Some(17)

@@ -1,7 +1,6 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_add,vec3_rotate_yaw_pitch}
-import com.publicscript.qucore.Game.{audio}
 import com.publicscript.qucore.Resources.{model_shotgun,sfx_shotgun_shoot,sfx_shotgun_reload,model_nailgun,sfx_nailgun_shoot,model_grenadelauncher,sfx_grenade_shoot}
 import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 
@@ -26,7 +25,7 @@ class Weapon {
     if (this.needs_ammo) {
       this.ammo -= 1
     }
-    audio.play(this.sound)
+    Game.world.audio.play(this.sound)
     this.spawn_projectile(pos, yaw, pitch)
   }
 
@@ -61,8 +60,8 @@ class WeaponShotgun extends Weapon {
 
   override def spawn_projectile(pos: Vec3, yaw: Double, pitch: Double) = {
 
-    setTimeout(200) { audio.play(sfx_shotgun_reload) }
-    setTimeout(350) { audio.play(sfx_shotgun_reload) }
+    setTimeout(200) { Game.world.audio.play(sfx_shotgun_reload) }
+    setTimeout(350) { Game.world.audio.play(sfx_shotgun_reload) }
 
     for (i <- 0 until 8) {
       super.spawn_projectile(pos, yaw + Math.random() * 0.08 - 0.04, pitch + Math.random() * 0.08 - 0.04)
@@ -75,7 +74,7 @@ class WeaponNailgun extends Weapon {
     this.texture = 4
     this.model = model_nailgun
     this.sound = sfx_nailgun_shoot
-    this.ammo = 100
+    this.ammo = 10000 //100
     this.reload = 0.09
     this.projectile_type = "nail"
     this.projectile_speed = 1300
