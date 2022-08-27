@@ -31,7 +31,7 @@ abstract class EntityEnemy(world:World, pos: Vec3, patrol_dir: Double) extends E
   this.size = vec3(12, 28, 12)
   this.step_height = 17
   this.keep_off_ledges = true
-  this.check_against = Entity.ENTITY_GROUP_PLAYER
+  this.check_against = "player"
 
   var speed = 196
 
@@ -135,7 +135,7 @@ abstract class EntityEnemy(world:World, pos: Vec3, patrol_dir: Double) extends E
 
   def spawn_projectile(entity_name: String, speed: Double, yaw_offset: Double, pitch_offset: Double) : Entity = {
     val projectile = world.spawn(entity_name, this.pos)
-    projectile.check_against = Entity.ENTITY_GROUP_PLAYER
+    projectile.check_against = "player"
     projectile.yaw = this.yaw + Math.PI / 2
     projectile.veloc = vec3_rotate_yaw_pitch(vec3(0, 0, speed), this.yaw + yaw_offset, Math.atan2(this.pos.y - world.player.pos.y, vec3_dist(this.pos, world.player.pos)) + pitch_offset)
     projectile

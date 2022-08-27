@@ -59,7 +59,7 @@ object Input {
       case " " => key_jump = pressed
       case _ => return false
     }
-    dump()
+  //  dump()
     return true
   }
 

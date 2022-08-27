@@ -10,12 +10,11 @@ object Game {
   var world = new GameWorld()
 
   def game_init() = {
-
     world.init_level(0)
-
-    world.player.weapons.addOne(new WeaponNailgun())
-    world.player.weapon_index = world.player.weapons.length - 1
+  //  world.player.weapons.addOne(new ItemWeaponNailgun(world))
+  //  world.player.weapon_index = world.player.weapons.length - 1
   }
+
 
   def game_run(time_now: Double) : Unit = {
 
@@ -53,6 +52,10 @@ object Game {
         world.map_index = world.map_index + 1
         world.init_level(world.map_index)
       }
+    }
+
+    if ( world.frames % 30 == 0) {
+      Document.fps.textContent = "FPS: " + world.framesPerSecond()
     }
   }
 

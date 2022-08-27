@@ -1,6 +1,5 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.Entity.{ENTITY_GROUP_PLAYER}
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_rotate_y}
 import com.publicscript.qucore.Resources.{model_hound,sfx_enemy_hound_attack}
 import scala.scalajs.js.timers._
@@ -10,7 +9,7 @@ class EntityEnemyHound(world:World, pos:Vec3, patrol_dir:Double) extends EntityE
   this.model = Some(model_hound)
   this.texture = Some(22)
   this.health = 25
-  this.check_against = ENTITY_GROUP_PLAYER
+  this.check_against = "player"
   this.size = vec3(12, 16, 12)
 
   this.attack_distance = 200

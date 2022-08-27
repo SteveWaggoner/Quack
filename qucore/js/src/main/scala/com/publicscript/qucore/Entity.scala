@@ -4,13 +4,6 @@ import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, v
 import com.publicscript.qucore.Model.ModelRender
 import org.scalajs.dom.AudioBuffer
 
-
-object Entity {
-  val ENTITY_GROUP_NONE = 0
-  val ENTITY_GROUP_PLAYER = 1
-  val ENTITY_GROUP_ENEMY = 2
-}
-
 abstract class Entity(world:World, var pos: Vec3) {
 
   override def toString: String = {
@@ -23,7 +16,7 @@ abstract class Entity(world:World, var pos: Vec3) {
 
   var model: Option[ModelRender] = None
   var check_entities = Array.empty[Entity]
-  var check_against: Int = Entity.ENTITY_GROUP_NONE
+  var check_against: String = "none"
   var texture: Option[Int] = None
 
   var accel = vec3()

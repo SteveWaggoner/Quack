@@ -16,4 +16,6 @@ object Document {
   val h:HTMLDivElement = document.querySelector("#h").asInstanceOf[HTMLDivElement]
   val msg:HTMLDivElement = document.querySelector("#msg").asInstanceOf[HTMLDivElement]
 
+  val fps:HTMLDivElement = document.querySelector("#fps").asInstanceOf[HTMLDivElement]
+
 }

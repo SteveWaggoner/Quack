@@ -12,7 +12,7 @@ class EntityPickupKey(world:World, apos:Vec3) extends EntityPickup(world,apos) {
 
   override def update() = {
     this.yaw += 0.02
-    draw_model()
+    super.update()
   }
 
   def pickup() = {

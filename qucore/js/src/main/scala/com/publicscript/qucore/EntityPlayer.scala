@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils._
 import com.publicscript.qucore.Resources.{sfx_hurt, sfx_no_ammo}
-import com.publicscript.qucore.Entity.ENTITY_GROUP_ENEMY
 import com.publicscript.qucore.Input._
 
 import scala.scalajs.js.timers._
@@ -21,9 +20,9 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
   var can_jump = false
   var can_shoot_at = 0d
   health = 100
-  check_against = ENTITY_GROUP_ENEMY
-  val weapons = new ArrayBuffer[Weapon]()
-  weapons.addOne(new WeaponShotgun())
+  check_against = "enemy"
+  val weapons = new ArrayBuffer[ItemWeapon]()
+  weapons.addOne(new ItemWeaponShotgun(world))
   var weapon_index = 0
 
   // Map 1 needs some rotation of the starting look-at direction

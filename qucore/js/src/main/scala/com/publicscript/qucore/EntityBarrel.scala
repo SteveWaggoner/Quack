@@ -19,8 +19,8 @@ class EntityBarrel(world:World, pos:Vec3) extends Entity(world, pos) {
   override def kill() = {
 
     // Deal some damage to nearby entities
-    for (entity <- world.get_entity_group(Entity.ENTITY_GROUP_ENEMY)) {
-      val dist = vec3_dist(this.pos, entity.pos);
+    for (entity <- world.get_entity_group("enemy")) {
+      val dist = vec3_dist(this.pos, entity.pos)
       if (entity != this && dist < 256) {
         entity.receive_damage(this, scale(dist, 0, 256, 60, 0))
       }
