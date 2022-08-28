@@ -1,7 +1,6 @@
 package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{vec3}
-import com.publicscript.qucore.Input.{mouse_x,mouse_y,key_prev,key_next}
 
 
 object Game {
@@ -11,14 +10,17 @@ object Game {
 
   def game_init() = {
     world.init_level(0)
-  //  world.player.weapons.addOne(new ItemWeaponNailgun(world))
-  //  world.player.weapon_index = world.player.weapons.length - 1
   }
 
 
   def game_run(time_now: Double) : Unit = {
 
-    world.set_time_now(time_now)
+    world.clock.set_time_now(time_now)
+
+    world.syncState()
+
+
+
     world.render.prepare_frame(0.1, 0.2, 0.5)
 
     // Update and render entities
@@ -28,11 +30,12 @@ object Game {
     world.map.draw()
     world.render.end_frame()
 
+
     // Reset mouse movement and buttons that should be pressed, not held.
-    mouse_x = 0
-    mouse_y = 0
-    key_next = false
-    key_prev = false
+    world.player.input.mouse_x = 0
+    world.player.input.mouse_y = 0
+    world.player.input.key_next = false
+    world.player.input.key_prev = false
 
     if (world.jump_to_next_level) {
       world.jump_to_next_level = false
@@ -51,11 +54,12 @@ object Game {
       } else {
         world.map_index = world.map_index + 1
         world.init_level(world.map_index)
+
       }
     }
 
-    if ( world.frames % 30 == 0) {
-      Document.fps.textContent = "FPS: " + world.framesPerSecond()
+    if ( world.clock.frames % 30 == 0) {
+      Document.fps.textContent = "FPS: " + world.clock.fps()
     }
   }
 

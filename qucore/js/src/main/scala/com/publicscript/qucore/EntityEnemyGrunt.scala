@@ -14,7 +14,7 @@ class EntityEnemyGrunt(world:World, pos: Vec3, patrol_dir: Double) extends Entit
     this.play_sound(sfx_shotgun_shoot)
     world.spawn("light", vec3_add(this.pos, vec3(0, 30, 0)), 10, 0xff, lifetime=0.1)
     for (i <- 0 until 3) {
-      this.spawn_projectile("shell", 10000, Math.random() * 0.08 - 0.04, Math.random() * 0.08 - 0.04)
+      this.spawn_projectile("shell", 10000, world.random() * 0.08 - 0.04, world.random() * 0.08 - 0.04)
     }
   }
 

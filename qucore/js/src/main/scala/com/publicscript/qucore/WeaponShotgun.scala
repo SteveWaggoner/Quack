@@ -5,7 +5,7 @@ import com.publicscript.qucore.Resources.{model_shotgun,sfx_shotgun_shoot,sfx_sh
 
 import scala.scalajs.js.timers._
 
-class ItemWeaponShotgun(world:World) extends ItemWeapon(world) {
+class WeaponShotgun(world:World) extends Weapon(world) {
 
   this.texture = 7
   this.model = model_shotgun
@@ -25,7 +25,7 @@ class ItemWeaponShotgun(world:World) extends ItemWeapon(world) {
     }
 
     for (i <- 0 until 8) {
-      super.spawn_projectile(pos, yaw + Math.random() * 0.08 - 0.04, pitch + Math.random() * 0.08 - 0.04)
+      super.spawn_projectile(pos, yaw + world.random() * 0.08 - 0.04, pitch + world.random() * 0.08 - 0.04)
     }
   }
 

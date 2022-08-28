@@ -1,21 +1,6 @@
 package com.publicscript.qucore
 
-import org.scalajs.dom.document
-import org.scalajs.dom.{KeyboardEvent, MouseEvent}
-import org.scalajs.dom.html.Canvas
-
-
-object Input {
-
-  def getCanvas(id: String): Option[Canvas] = {
-    val queryResult = document.querySelector(s"#$id")
-    queryResult match {
-      case canvas: Canvas => Some(canvas)
-      case other =>
-        println(s"Element with ID $id is not an canvas, it's $other")
-        None
-    }
-  }
+class Input extends Serializable {
 
   def dump() = {
     var ret = ""
@@ -59,7 +44,6 @@ object Input {
       case " " => key_jump = pressed
       case _ => return false
     }
-  //  dump()
     return true
   }
 
@@ -67,61 +51,35 @@ object Input {
   var mouse_y = 0d
   var last_wheel_event = -1d
 
-  def input_init() = {
-    println("Input constructor")
 
-    document.onkeydown = (ev: KeyboardEvent) => {
- //     println("document.onkeydown = (ev: KeyboardEvent)")
-      if (setKey(ev.key, true)) {
-        ev.preventDefault()
-      }
-    }
-    document.onkeyup = (ev: KeyboardEvent) => {
-      if (setKey(ev.key, false)) {
-        ev.preventDefault()
-      }
-    }
-    document.onwheel = (ev) => {
-      // Allow for one wheel event every 0.1s. This sucks, but prevents free
-      // spinning or touch scrolling mouses (eg. Apple Magic Mouse) from doing
-      // wild things.
-      if (Game.world.time - last_wheel_event > 0.1) {
+  def writeState(outputState:State) = {
+    outputState.writeBool(this.key_up)
+    outputState.writeBool(this.key_down)
+    outputState.writeBool(this.key_left)
+    outputState.writeBool(this.key_right)
+    outputState.writeBool(this.key_prev)
+    outputState.writeBool(this.key_next)
+    outputState.writeBool(this.key_action)
+    outputState.writeBool(this.key_jump)
 
-        if (ev.deltaY > 1) {
-          key_next = true
-        } else {
-          key_prev = true
-        }
-   //     last_wheel_event = game_time
-   //     dump()
-
-      }
-    }
-
-    val c = getCanvas("c").get
-
-    c.onmousemove = (ev: MouseEvent) => {
-      mouse_x += ev.movementX
-      mouse_y += ev.movementY
-    //  dump()
-    }
-    c.onmousedown = (ev: MouseEvent) => {
-      ev.preventDefault()
-      ev.button match {
-        case 0 => key_action = true
-        case 2 => key_jump = true
-      }
-    //  dump()
-    }
-    c.onmouseup = (ev: MouseEvent) => {
-      ev.preventDefault()
-      ev.button match {
-        case 0 => key_action = false
-        case 2 => key_jump = false
-      }
-     // dump()
-
-    }
-
+    outputState.writeFloat(this.mouse_x)
+    outputState.writeFloat(this.mouse_y)
+    outputState.writeFloat(this.last_wheel_event)
   }
+
+  def readState(inputState:State) = {
+    this.key_up = inputState.readBool()
+    this.key_down = inputState.readBool()
+    this.key_left = inputState.readBool()
+    this.key_right = inputState.readBool()
+    this.key_prev = inputState.readBool()
+    this.key_next = inputState.readBool()
+    this.key_action = inputState.readBool()
+    this.key_jump = inputState.readBool()
+
+    this.mouse_x = inputState.readFloat()
+    this.mouse_y = inputState.readFloat()
+    this.last_wheel_event = inputState.readFloat()
+  }
+
 }

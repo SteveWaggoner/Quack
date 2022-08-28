@@ -53,7 +53,7 @@ abstract class EntityEnemy(world:World, pos: Vec3, patrol_dir: Double) extends E
   if (patrol_dir != 0) {
     this.set_state(this.STATE_PATROL)
     this.target_yaw = Math.PI / 2 * patrol_dir
-    this.anim_time = Math.random()
+    this.anim_time = world.random()
   } else {
     this.set_state(this.STATE_IDLE)
   }
@@ -62,14 +62,14 @@ abstract class EntityEnemy(world:World, pos: Vec3, patrol_dir: Double) extends E
     this.state = state
     this.anim = this.ANIMS(state.anim_index)
     this.anim_time = 0
-    this.state_update_at = world.time + state.next_state_update + state.next_state_update / 4d * Math.random()
+    this.state_update_at = world.time + state.next_state_update + state.next_state_update / 4d * world.random()
   }
 
   override def update() = {
     // Is it time for a state update?
     if (this.state_update_at < world.time) {
       // Choose a new turning bias for FOLLOW/EVADE when we hit a wall
-      this.turn_bias = if (Math.random() > 0.5) 0.5 else -0.5
+      this.turn_bias = if (world.random() > 0.5) 0.5 else -0.5
 
       val distance_to_player = get_distance_to_player()
       val angle_to_player = get_angle_to_player()
@@ -86,9 +86,9 @@ abstract class EntityEnemy(world:World, pos: Vec3, patrol_dir: Double) extends E
         // Are we close enough to attack?
         if (distance_to_player < this.attack_distance) {
           // Are we too close? Evade!
-          if (distance_to_player < this.evade_distance || Math.random() > this.attack_chance) {
+          if (distance_to_player < this.evade_distance || world.random() > this.attack_chance) {
             this.set_state(this.STATE_EVADE)
-            this.target_yaw += Math.PI / 2 + Math.random() * Math.PI
+            this.target_yaw += Math.PI / 2 + world.random() * Math.PI
           } else
           // Just the right distance to attack!
           {

@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_add, vec3_rotate_yaw_
 import org.scalajs.dom.AudioBuffer
 
 
-class ItemWeapon(world:World) extends Item(world) {
+class Weapon(world:World)  {
 
   var texture = -1
   var model : Model.ModelRender = null

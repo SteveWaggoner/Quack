@@ -2,7 +2,7 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.Resources.{model_grenadelauncher,sfx_grenade_shoot}
 
-class ItemWeaponGrenadeLauncher(world:World) extends ItemWeapon(world) {
+class WeaponGrenadeLauncher(world:World) extends Weapon(world) {
 
     this.texture = 21
     this.model = model_grenadelauncher

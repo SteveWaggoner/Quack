@@ -6,6 +6,7 @@ import org.scalajs.dom.AudioBuffer
 
 import scala.collection.mutable.ArrayBuffer
 import scala.scalajs.js.timers.{SetTimeoutHandle, clearTimeout, setTimeout}
+import scala.util.Random
 
 
 class GameWorld extends World {
@@ -114,7 +115,7 @@ class GameWorld extends World {
   private def new_entity(world:World, entity_name:String, pos:Vec3, data1:Any, data2:Any):Entity = {
     // Entity Id to class - must be consistent with map_packer.c line ~900
     entity_name match {
-      case "player" => new EntityPlayer(world, pos, data1, data2)
+      case "player" => new EntityPlayer(world, pos, data1, data2, new InputLocal())
       case "grunt" => new EntityEnemyGrunt(world, pos, data1.asInstanceOf[Double])
 
       case "enforcer" => new EntityEnemyGrunt(world, pos, data1.asInstanceOf[Double])
@@ -145,38 +146,23 @@ class GameWorld extends World {
     }
   }
 
-  var time = 0.016d
-  var tick = 0d
-  private var real_time_last: Double = 0
 
-
-  //debugging
-  var frames = 0
-  var elapsedTime = 0d
-
-
-  def set_time_now(time_now_par:Double) = {
-    var time_now = time_now_par
-
-    time_now *= 0.001
-
-    if (real_time_last == 0)
-      real_time_last = time_now
-
-    tick = Math.min(time_now - real_time_last, 0.05)
-    real_time_last = time_now
-    time += tick
-
-
-    elapsedTime = elapsedTime + tick
-    frames = frames + 1
+  var clock = new Clock()
+  def time():Double = {
+    clock.time
+  }
+  def tick():Double = {
+    clock.tick
   }
 
-  //debugging
-  def framesPerSecond() : Double = {
-    frames / elapsedTime
-  }
+  var randomObj = new Random(123)
 
+  def randomInit() = {
+    randomObj = new Random(123)
+  }
+  def random():Double = {
+    randomObj.nextDouble()
+  }
 
   //
   // World interface below
@@ -195,6 +181,9 @@ class GameWorld extends World {
   }
 
   def init_level(level:Int) = {
+
+    randomInit()
+
     show_title_message("")
     entities.clear()
     map_index=level
@@ -203,6 +192,14 @@ class GameWorld extends World {
 
   def reset_level() = {
     init_level(map_index)
+
+    //debug: switch to replay
+    /*
+    this.mode = "replay"
+    player.input = new InputRemote()
+    randomInit()
+    log.state.reset()
+    */
   }
 
   def next_level() = {
@@ -219,6 +216,20 @@ class GameWorld extends World {
 
   def get_line_of_sight(a:Vec3, b:Vec3) : Boolean = {
     map.line_of_sight(a,b)
+  }
+
+  val log = new GameLog()
+  var mode = "record"
+
+  def syncState() = {
+
+    if ( mode == "replay" ) {
+      log.loadState(this)
+    }
+
+    if ( mode == "record") {
+      log.saveState(this)
+    }
   }
 
 }

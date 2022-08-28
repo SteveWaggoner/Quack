@@ -18,11 +18,12 @@ class EntityDoor(world:World, apos:Vec3, tex:Int, dir:Double) extends Entity(wor
   this.is_enemy = true
   this.is_friend = true
 
-  var start_pos = vec3_clone(this.pos)
+  var start_pos = vec3_clone(this.apos)
   var reset_state_at = 0d
   var open = false
 
   override def update(): Unit = {
+
     this.draw_model()
     if (get_distance_to_player() < 128) {
       if (this.needs_key) {
@@ -36,7 +37,12 @@ class EntityDoor(world:World, apos:Vec3, tex:Int, dir:Double) extends Entity(wor
     } else {
       this.open = true
     }
+
     this.pos = vec3_add(this.start_pos, vec3_rotate_y(vec3(if (this.open) 96 else 0, 0, 0), this.yaw))
+  }
+
+  override def receive_damage(from: Entity, amount: Double): Unit = {
+    //door never receives damage
   }
 
 }

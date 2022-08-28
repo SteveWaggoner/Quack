@@ -3,7 +3,7 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.Vec3
 import com.publicscript.qucore.Resources.{model_pickup_key,sfx_pickup}
 
-class EntityPickupKey(world:World, apos:Vec3) extends EntityPickup(world,apos) {
+class EntityPickupKey(world:World, pos:Vec3) extends EntityPickup(world,pos) {
 
 
   this.texture = Some(21)

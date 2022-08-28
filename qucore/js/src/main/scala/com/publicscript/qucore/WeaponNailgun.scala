@@ -4,7 +4,7 @@ import com.publicscript.qucore.MathUtils.{vec3}
 import com.publicscript.qucore.Resources.{model_nailgun,sfx_nailgun_shoot}
 
 
-class ItemWeaponNailgun(world:World) extends ItemWeapon(world) {
+class WeaponNailgun(world:World) extends Weapon(world) {
     this.texture = 4
     this.model = model_nailgun
     this.sound = sfx_nailgun_shoot

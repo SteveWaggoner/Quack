@@ -22,7 +22,7 @@ class EntityProjectileGrenade(world:World, apos:Vec3) extends Entity(world, apos
 
   override def did_collide(axis: Int):Unit = {
     if (axis != 1 || this.veloc.y < -128) {
-      this.yaw += Math.random()
+      this.yaw += world.random()
       this.play_sound(sfx_grenade_bounce)
     }
   }

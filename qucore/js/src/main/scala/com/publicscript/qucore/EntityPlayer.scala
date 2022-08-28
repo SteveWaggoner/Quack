@@ -2,7 +2,6 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils._
 import com.publicscript.qucore.Resources.{sfx_hurt, sfx_no_ammo}
-import com.publicscript.qucore.Input._
 
 import scala.scalajs.js.timers._
 
@@ -10,7 +9,7 @@ import scala.collection.mutable.ArrayBuffer
 
 
 
-class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world, ap) {
+class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any, var input:Input) extends Entity(world, ap) {
 
   //constructor
   size = vec3(12, 24, 12)
@@ -21,8 +20,8 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
   var can_shoot_at = 0d
   health = 100
   check_against = "enemy"
-  val weapons = new ArrayBuffer[ItemWeapon]()
-  weapons.addOne(new ItemWeaponShotgun(world))
+  val weapons = new ArrayBuffer[Weapon]()
+  weapons.addOne(new WeaponShotgun(world))
   var weapon_index = 0
 
   // Map 1 needs some rotation of the starting look-at direction
@@ -36,31 +35,31 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any) extends Entity(world
   override def update() = {
 
     // Mouse look
-    this.pitch = clamp(this.pitch + mouse_y * world.mouse_sensitivity() * (if (world.mouse_inverted()) -0.00015 else 0.00015), -1.5, 1.5)
-    this.yaw = (this.yaw + mouse_x * world.mouse_sensitivity() * 0.00015) % (Math.PI * 2)
+    this.pitch = clamp(this.pitch + input.mouse_y * world.mouse_sensitivity() * (if (world.mouse_inverted()) -0.00015 else 0.00015), -1.5, 1.5)
+    this.yaw = (this.yaw + input.mouse_x * world.mouse_sensitivity() * 0.00015) % (Math.PI * 2)
     // Acceleration in movement direction
-    val key_x = (if (key_right) 1 else 0) - (if (key_left) 1 else 0)
-    val key_y = (if (key_up) 1 else 0) - (if (key_down) 1 else 0)
+    val key_x = (if (input.key_right) 1 else 0) - (if (input.key_left) 1 else 0)
+    val key_y = (if (input.key_up) 1 else 0) - (if (input.key_down) 1 else 0)
 
     this.accel = vec3_mulf(vec3_rotate_y(vec3(key_x, 0, key_y), this.yaw), this.speed * (if (this.on_ground) 1.0 else 0.3))
 
-    if (key_jump && this.on_ground && this.can_jump) {
+    if (input.key_jump && this.on_ground && this.can_jump) {
       this.veloc.y = 400
       this.on_ground = false
       this.can_jump = false
     }
-    if (!key_jump) {
+    if (!input.key_jump) {
       this.can_jump = true
     }
 
-    val key_change = (if (key_next) 1 else 0) - (if (key_prev) 1 else 0)
+    val key_change = (if (input.key_next) 1 else 0) - (if (input.key_prev) 1 else 0)
 
     this.weapon_index = (this.weapon_index + key_change + this.weapons.length) % this.weapons.length
     val shoot_wait = this.can_shoot_at - world.time
     val weapon = this.weapons(this.weapon_index)
 
     // Shoot Weapon
-    if (key_action && shoot_wait < 0) {
+    if (input.key_action && shoot_wait < 0) {
       this.can_shoot_at = world.time + weapon.reload
       if (weapon.needs_ammo && weapon.ammo == 0) {
         world.audio_play(sfx_no_ammo)

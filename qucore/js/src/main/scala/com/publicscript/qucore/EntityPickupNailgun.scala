@@ -15,7 +15,7 @@ class EntityPickupNailgun(world:World, apos:Vec3) extends EntityPickup(world, ap
 
   def pickup() = {
     world.audio_play(sfx_pickup)
-    world.player.weapons.addOne(new ItemWeaponNailgun(world))
+    world.player.weapons.addOne(new WeaponNailgun(world))
     world.player.weapon_index = world.player.weapons.length - 1
     this.kill()
   }

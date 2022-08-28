@@ -51,4 +51,6 @@ trait World {
   var camera_yaw : Double
   var camera_pitch : Double
 
+  //deterministic random (common seed for all players)
+  def random() : Double
 }

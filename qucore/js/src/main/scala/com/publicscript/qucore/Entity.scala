@@ -4,7 +4,25 @@ import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, v
 import com.publicscript.qucore.Model.ModelRender
 import org.scalajs.dom.AudioBuffer
 
-abstract class Entity(world:World, var pos: Vec3) {
+
+object Entity {
+  var seq:Int = 0
+  def nextSeq():Int = {
+    seq = seq + 1
+    seq
+  }
+}
+
+abstract class Entity(world:World, var pos: Vec3) extends Serializable {
+
+  var tag = new Tag(Entity.nextSeq(),0)
+
+  var accel = vec3()
+  var veloc = vec3()
+  var size = vec3(2, 2, 2)
+
+  var yaw: Double = 0
+  var pitch: Double = 0
 
   override def toString: String = {
     var ret = this.getClass.getSimpleName
@@ -19,9 +37,6 @@ abstract class Entity(world:World, var pos: Vec3) {
   var check_against: String = "none"
   var texture: Option[Int] = None
 
-  var accel = vec3()
-  var veloc = vec3()
-  var size = vec3(2, 2, 2)
   var friction: Double = 0
   var health: Double = 50
   var dead: Boolean = false
@@ -29,10 +44,9 @@ abstract class Entity(world:World, var pos: Vec3) {
   var step_height: Double = 0
   var bounciness: Double = 0
   var gravity: Double = 1
-  var yaw: Double = 0
-  var pitch: Double = 0
+
   var anim = Anim(1, Array(0))
-  var anim_time: Double = Math.random()
+  var anim_time: Double = world.random()
   var on_ground: Boolean = false
   var keep_off_ledges: Boolean = false
   var stepped_up_at: Double = 0
@@ -41,7 +55,6 @@ abstract class Entity(world:World, var pos: Vec3) {
 
   var is_enemy = false
   var is_friend = false
-
 
   def get_distance_to_player(): Double = {
     vec3_dist(this.pos, this.world.player.pos)
@@ -207,8 +220,8 @@ abstract class Entity(world:World, var pos: Vec3) {
       val particle = world.spawn("particle", pos)
       particle.model = Some(model)
       particle.texture = Some(texture)
-      particle.die_at = (world.time + lifetime + Math.random() * lifetime * 0.2).toInt
-      particle.veloc = vec3((Math.random() - 0.5) * speed, Math.random() * speed, (Math.random() - 0.5) * speed)
+      particle.die_at = (world.time + lifetime + world.random() * lifetime * 0.2).toInt
+      particle.veloc = vec3((world.random() - 0.5) * speed, world.random() * speed, (world.random() - 0.5) * speed)
     }
   }
 
@@ -231,6 +244,44 @@ abstract class Entity(world:World, var pos: Vec3) {
 
   def kill() = {
     dead = true
+  }
+
+
+  //serializable interface
+  def writeState(outputState:State) = {
+
+    //
+    outputState.writeTag(this.tag)
+
+    //
+    outputState.writeVec3(this.pos)
+    outputState.writeVec3(this.accel)
+    outputState.writeVec3(this.veloc)
+    outputState.writeVec3(this.size)
+
+    outputState.writeFloat(this.yaw)
+    outputState.writeFloat(this.pitch)
+
+    outputState.writeBool(this.dead)
+
+    outputState.writeFloat(this.health)
+    outputState.writeFloat(this.die_at)
+  }
+
+  def readState(inputState:State) = {
+
+    inputState.readVec3(this.pos)
+    inputState.readVec3(this.accel)
+    inputState.readVec3(this.veloc)
+    inputState.readVec3(this.size)
+
+    this.yaw = inputState.readFloat()
+    this.pitch = inputState.readFloat()
+
+    this.dead = inputState.readBool()
+
+    this.health = inputState.readFloat()
+    this.die_at = inputState.readFloat()
   }
 
 }

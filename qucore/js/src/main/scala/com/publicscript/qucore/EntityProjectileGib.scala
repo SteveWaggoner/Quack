@@ -10,8 +10,8 @@ class EntityProjectileGib(world:World, apos:Vec3) extends Entity(world, apos) {
   this.bounciness = 0
   this.die_at = world.time + 2
   this.model = Some(model_gib)
-  this.yaw = Math.random()
-  this.pitch = Math.random()
+  this.yaw = world.random()
+  this.pitch = world.random()
 
   override def update() = {
     super.update_physics()
