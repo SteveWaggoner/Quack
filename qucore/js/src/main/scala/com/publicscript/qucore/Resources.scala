@@ -89,6 +89,7 @@ object Resources {
 
     // Load map & model containers
     import scala.concurrent.ExecutionContext.Implicits.global
+    println("loading js/target/scala-2.13/classes/build/levels")
     Game.world.map.load_container_async("js/target/scala-2.13/classes/build/levels").onComplete {
       result => {
         println("loaded Resources.map_data")
@@ -97,6 +98,7 @@ object Resources {
       }
     }
 
+    println("loading js/target/scala-2.13/classes/build/models")
     model_load_container_async("js/target/scala-2.13/classes/build/models").onComplete {
       result => {
         println("loaded Resources.model_data")

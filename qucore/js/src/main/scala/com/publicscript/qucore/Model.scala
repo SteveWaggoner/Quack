@@ -73,6 +73,9 @@ object Model {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
     } yield {
+      println("parse_model_container")
+      println("arrayBuffer.byteLength = " + arrayBuffer.byteLength.toString)
+
       parse_model_container(new Uint8Array(arrayBuffer))
     }
 

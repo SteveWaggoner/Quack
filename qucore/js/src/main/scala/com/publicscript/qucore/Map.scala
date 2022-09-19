@@ -72,12 +72,16 @@ class Map {
 
   private def parse_map_container(data: Uint8Array): Array[Map.MapData] = {
 
+    println("parse_map_container data.length="+data.length)
+
     val maps = new ArrayBuffer[Map.MapData](0)
     var i = 0
     while (i < data.length) {
 
       val blocks_size = data(i+0) | (data(i+1) << 8)
       i += 2
+
+      println(" block_size="+blocks_size)
 
       val cm = new Uint8Array(map_size * map_size * map_size >> 3) // collision map
 

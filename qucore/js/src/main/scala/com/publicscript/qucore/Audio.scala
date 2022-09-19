@@ -95,9 +95,14 @@ class Audio {
   private val AUDIO_TAB_MASK = AUDIO_TAB_SIZE - 1
   private val AUDIO_TAB = new Float32Array(AUDIO_TAB_SIZE * 4)
 
-  audio_init()
+  // audio_init()
 
-  private def audio_init() = {
+  private def audio_init() : Unit = {
+
+    if ( audio_ctx != null ) {
+      return
+    }
+
     audio_ctx = new AudioContext()
     audio_ctx.resume()
     // Generate the lookup tables

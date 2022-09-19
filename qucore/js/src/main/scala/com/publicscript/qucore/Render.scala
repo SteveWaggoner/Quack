@@ -272,6 +272,8 @@ class Render(val canvas: HTMLCanvasElement) {
 
   def push_block(x: Double, y: Double, z: Double, sx: Double, sy: Double, sz: Double, texture: Int): Int = {
 
+    println("push_block(): texture = "+texture+",  r_textures.length = "+r_textures.length)
+
     val canvas = r_textures(texture).canvas
 
     val index = r_num_verts
