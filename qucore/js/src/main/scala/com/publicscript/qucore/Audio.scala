@@ -97,7 +97,7 @@ class Audio {
 
   // audio_init()
 
-  private def audio_init() : Unit = {
+  def audio_init() : Unit = {
 
     if ( audio_ctx != null ) {
       return

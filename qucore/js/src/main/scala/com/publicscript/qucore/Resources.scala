@@ -180,6 +180,8 @@ object Resources {
       return
     }
 
+    Game.world.audio.audio_init()
+
 
     // Generate sounds
     sfx_enemy_hit = Game.world.audio.create_sound(135, Instrument(8, 0, 0, true, 148, 1, 3, 5, 0, false, 139, 1, 0, 2653, 0, 2193, 255, 2, 639, 119, 2, 23, 0, 0, false, false, 0, 0, 0))
