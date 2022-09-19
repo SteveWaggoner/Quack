@@ -17,9 +17,7 @@ object Game {
 
     world.clock.set_time_now(time_now)
 
-    world.syncState()
-
-
+ //   world.syncState()
 
     world.render.prepare_frame(0.1, 0.2, 0.5)
 
