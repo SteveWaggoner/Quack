@@ -157,11 +157,14 @@ class Map {
     import scala.concurrent.ExecutionContext.Implicits.global
     import js.Thenable.Implicits.thenable2future
 
+
+    println("load_container_async() url = "+url)
+
     val responseMaps = for {
       response <- dom.fetch(url)
       arrayBuffer <- response.arrayBuffer()
     } yield {
-
+      println(" yield arrayBuffer.byteLength="+arrayBuffer.byteLength)
       parse_map_container(new Uint8Array(arrayBuffer))
     }
 
