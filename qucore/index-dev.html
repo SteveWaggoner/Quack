@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>The Scala.js Tutorial</title>
+    <title>The Amazing Quack Game</title>
   </head>
   <body>
 
@@ -77,58 +77,11 @@
     <div id="fps"></div>
   </div>
 
-
   <p>MOUSE SPEED: <input id="m" type="range" value="10" min="1" max="50" /> INVERT: <input type="checkbox" id="mi" /></p>
   <p><input id="f" type="button" value="FULLSCREEN" /></p>
 
-  <button id="load_maps">Load Maps</button>
-  <button id="load_models">Load Models</button>
-
-
-  <button id="yodel">Yodel!</button>
-
-
-  <button id="old_code" onclick="play_old()">old_code!</button>
-
-  <button id="sfx_shotgun_shoot">sfx_shotgun_shoot!</button>
-  <button id="sfx_nailgun_shoot">sfx_nailgun_shoot!</button>
-
-  <button id="sfx_plasma_shoot">sfx_plasma_shoot!</button>
-  <button id="sfx_grenade_bounce">sfx_grenade_bounce!</button>
-  <button id="sfx_grenade_explode">sfx_grenade_explode!</button>
-
-  <button id="song">song!</button>
-
-
   <!-- Include Scala.js compiled code -->
   <script type="text/javascript" src="js/target/scala-2.13/qucore-fastopt.js"></script>
-
-  <script type="text/javascript" src="js/old_code/audio.js"></script>
-
-  <script type="text/javascript">
-
-
-      function play_old2() { console.log("old sfx_shotgun_shoot");
-
-          audio_init();
-
-          sfx_shotgun_shoot = audio_create_sound(135, [7,3,0,1,255,1,6,0,0,1,255,1,112,548,1979,11601,255,2,2902,176,2,77,0,0,1,0,10,255,1]);
-
-          audio_play(sfx_shotgun_shoot);
-
-      }
-
-      function play_old() { console.log("old song");
-
-          audio_init();
-
-          let music_data = [6014,21,88,[[[7,0,0,1,255,0,7,0,0,1,255,0,0,100,0,3636,254,2,1199,254,4,71,0,0,0,0,0,0,0],[1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],[[126,126,0,0,126,0,0,0,0,0,0,0,0,0,0,0,126,126,0,0,126,0,0,0,0,0,0,0,0,0,0,0]]],[[6,0,0,0,255,2,6,0,18,0,255,2,0,100000,56363,100000,199,2,200,254,8,24,0,0,0,0,0,0,0],[0,0,2,2,3,4,2,2,3,5,2,2,3,4,2,2,3,5],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[132,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[133,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,128,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[125,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[120,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]],[[7,0,0,0,87,2,8,0,0,0,16,3,8,0,22,2193,255,3,1162,51,10,182,2,190,0,1,10,96,0],[0,0,0,0,0,0,1,1,1,1,1,1,1,1],[[149,149,0,0,149,0,149,0,149,149,0,0,149,0,149,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]],[[8,0,0,0,65,2,6,0,0,0,243,3,0,200,7505,20000,204,4,6180,81,4,198,0,0,0,0,6,131,0],[0,0,0,0,0,0,0,0,0,0,1,1,2,3,1,1,2,3],[[132,0,0,0,0,0,0,0,133,0,0,0,137,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[132,0,0,0,0,0,0,0,133,0,0,0,130,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[132,0,0,0,0,0,0,0,133,0,0,0,125,0,0,0,0,0,0,0,125,0,0,0,0,0,0,0,0,0,0,0]]]]];
-
-          audio_play(audio_create_song(...music_data), 1, 1);
-
-      }
-
-  </script>
 
   </body>
 </html>
