@@ -3,7 +3,7 @@ package com.publicscript.qucore
 import com.publicscript.qucore.MathUtils.{Vec3,vec3,vec3_dist,scale,vec3_add}
 import com.publicscript.qucore.Resources.{model_barrel,sfx_grenade_explode,model_gib_pieces}
 
-class EntityBarrel(world:World, pos:Vec3) extends Entity(world, pos) {
+class EntityBarrel(_world:World, _pos:Vec3) extends Entity(_world, _pos) {
 
   this.model = Some(model_barrel)
   this.texture = Some(21)

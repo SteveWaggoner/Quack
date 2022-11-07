@@ -13,7 +13,7 @@ class EntityProjectilePlasma(world:World, apos:Vec3) extends Entity(world, apos)
   override def update():Unit = {
     this.update_physics()
     this.draw_model()
-    world.render_light(this.pos, 5, 255, 128, 0)
+    world.display.render.push_light(this.pos, 5, 255, 128, 0)
   }
 
   override def did_collide(axis: Int):Unit = {

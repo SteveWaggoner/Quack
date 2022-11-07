@@ -9,7 +9,7 @@ class Clock extends Serializable {
   private var real_time_last = 0d
 
 
-  def set_time_now(time_now_par:Double) = {
+  def set_time(time_now_par:Double) = {
     var time_now = time_now_par
 
     time_now *= 0.001

@@ -16,8 +16,8 @@ class EntityPickupKey(world:World, pos:Vec3) extends EntityPickup(world,pos) {
   }
 
   def pickup() = {
-    world.audio_play(sfx_pickup)
-    world.show_game_message("YOU GOT THE KEY!")
+    world.play_sound(sfx_pickup)
+    world.display.show_game_message("YOU GOT THE KEY!")
 
     world.no_entity_needs_key()
 

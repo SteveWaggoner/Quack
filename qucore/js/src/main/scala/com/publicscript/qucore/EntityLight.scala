@@ -28,7 +28,7 @@ class EntityLight(world:World, pos:Vec3, var light:Double, colorNum:Int) extends
       }
       intensity = scale(world.time, this.spawn_time, this.die_at, 1, 0) * this.light
     }
-    world.render_light(this.pos, intensity, this.color(0), this.color(1), this.color(2))
+    world.display.render.push_light(this.pos, intensity, this.color(0), this.color(1), this.color(2))
   }
 
 }

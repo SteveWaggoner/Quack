@@ -109,7 +109,7 @@ class Map {
 
         // Submit the block to the render buffer; we get the vertex offset
         // of this block within the buffer back, so we can draw it later
-        val b = Game.world.render.push_block(x << 5, y << 4, z << 5,
+        val b = Game.world.display.render.push_block(x << 5, y << 4, z << 5,
           sx << 5, sy << 4, sz << 5,
           t)
 
@@ -250,7 +250,7 @@ class Map {
 
     val p = vec3()
     for (r <- map.render) {
-        Game.world.render.draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
+        Game.world.display.render.draw(p, 0, 0, r.texture, r.block, r.block, 0, 36)
     }
   }
 

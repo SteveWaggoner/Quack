@@ -18,10 +18,10 @@ class WeaponShotgun(world:World) extends Weapon(world) {
   override def spawn_projectile(pos: Vec3, yaw: Double, pitch: Double) = {
 
     setTimeout(200) {
-      world.audio_play(sfx_shotgun_reload)
+      world.play_sound(sfx_shotgun_reload)
     }
     setTimeout(350) {
-      world.audio_play(sfx_shotgun_reload)
+      world.play_sound(sfx_shotgun_reload)
     }
 
     for (i <- 0 until 8) {

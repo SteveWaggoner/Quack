@@ -21,7 +21,7 @@ class Weapon(world:World)  {
     if (this.needs_ammo) {
       this.ammo -= 1
     }
-    this.world.audio_play(this.sound)
+    this.world.play_sound(this.sound)
     this.spawn_projectile(pos, yaw, pitch)
   }
 

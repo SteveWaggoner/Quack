@@ -13,7 +13,7 @@ class EntityPickupGrenades(world:World, apos:Vec3) extends EntityPickup(world, a
     for (w <- world.player.weapons) {
       if (w.isInstanceOf[WeaponGrenadeLauncher]) {
         w.ammo += 10
-        world.audio_play(sfx_pickup)
+        world.play_sound(sfx_pickup)
         this.kill()
       }
     }

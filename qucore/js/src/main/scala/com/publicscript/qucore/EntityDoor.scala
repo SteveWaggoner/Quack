@@ -27,7 +27,7 @@ class EntityDoor(world:World, apos:Vec3, tex:Int, dir:Double) extends Entity(wor
     this.draw_model()
     if (get_distance_to_player() < 128) {
       if (this.needs_key) {
-        world.show_game_message("YOU NEED THE KEY...")
+        world.display.show_game_message("YOU NEED THE KEY...")
         return
       }
       this.reset_state_at = world.time + 3

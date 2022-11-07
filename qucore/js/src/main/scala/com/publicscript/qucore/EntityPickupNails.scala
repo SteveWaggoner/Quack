@@ -11,7 +11,7 @@ class EntityPickupNails(world:World, pos:Vec3) extends EntityPickup(world, pos) 
     for (w <- world.player.weapons) {
       if (w.isInstanceOf[WeaponNailgun]) {
         w.ammo += 50
-        world.audio_play(sfx_pickup)
+        world.play_sound(sfx_pickup)
         this.kill()
       }
     }

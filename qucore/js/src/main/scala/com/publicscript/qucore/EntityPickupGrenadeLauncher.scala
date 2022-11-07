@@ -14,7 +14,7 @@ class EntityPickupGrenadeLauncher(world:World, apos:Vec3) extends EntityPickup(w
   }
 
   def pickup() = {
-    world.audio_play(sfx_pickup)
+    world.play_sound(sfx_pickup)
     world.player.weapons.addOne(new WeaponGrenadeLauncher(world))
     world.player.weapon_index =  world.player.weapons.length-1
     this.kill()

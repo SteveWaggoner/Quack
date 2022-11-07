@@ -1,6 +1,6 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3, vec3}
+import com.publicscript.qucore.MathUtils.{Vec3}
 
 import scala.scalajs.js.typedarray.{Float32Array, Uint32Array, Uint8Array}
 
@@ -71,15 +71,6 @@ class State {
     vec3.x = readFloat()
     vec3.y = readFloat()
     vec3.z = readFloat()
-  }
-
-  def writeTag(tag:Tag) = {
-    writeInt(tag.serial_id)
-    writeInt(tag.serial_type)
-  }
-  def readTag(tag:Tag) = {
-    tag.serial_id   = readInt()
-    tag.serial_type = readInt()
   }
 
 }

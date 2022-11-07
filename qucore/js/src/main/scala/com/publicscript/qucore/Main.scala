@@ -4,7 +4,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-      Resources.game_load()
+      Game.game_load()
 
   }
 

@@ -1,7 +1,6 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_face_normal}
-
+import com.publicscript.qucore.MathUtils._
 import org.scalajs.dom.HTMLCanvasElement
 
 import scala.scalajs.js
@@ -307,4 +306,14 @@ class Render(val canvas: HTMLCanvasElement) {
       r_num_lights += 1
     }
   }
+
+
+
+  def get_distance_to_camera(pos: Vec3) : Double = {
+    vec3_dist(pos, camera)
+  }
+  def get_angle_to_camera(pos:Vec3) : Double = {
+    vec3_2d_angle(pos, camera) - camera_yaw
+  }
+
 }

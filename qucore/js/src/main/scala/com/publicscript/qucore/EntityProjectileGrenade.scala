@@ -16,7 +16,7 @@ class EntityProjectileGrenade(world:World, apos:Vec3) extends Entity(world, apos
   override def update() = {
     super.update_physics()
     this.draw_model()
-    world.render_light(vec3_add(this.pos, vec3(0, 16, 0)), (Math.sin(world.time * 10) + 2) * 0.5, 255, 32, 0)
+    world.display.render.push_light(vec3_add(this.pos, vec3(0, 16, 0)), (Math.sin(world.time * 10) + 2) * 0.5, 255, 32, 0)
     this.friction = if (this.on_ground) 5 else 0.5
   }
 

@@ -1,34 +1,11 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3, clamp, scale, vec3, vec3_dist, vec3_2d_angle,vec3_sub,vec3_add,vec3_mulf,vec3_mul,vec3_length,vec3_clone}
+import com.publicscript.qucore.MathUtils.{Vec3, vec3, vec3_dist, vec3_sub,vec3_add,vec3_mulf,vec3_mul,vec3_length,vec3_clone}
 import com.publicscript.qucore.Model.ModelRender
 import org.scalajs.dom.AudioBuffer
 
 
-object Entity {
-  var seq:Int = 0
-  def nextSeq():Int = {
-    seq = seq + 1
-    seq
-  }
-}
-
-abstract class Entity(world:World, var pos: Vec3) extends Serializable {
-
-  var tag = new Tag(Entity.nextSeq(),0)
-
-  var accel = vec3()
-  var veloc = vec3()
-  var size = vec3(2, 2, 2)
-
-  var yaw: Double = 0
-  var pitch: Double = 0
-
-  override def toString: String = {
-    var ret = this.getClass.getSimpleName
-    ret = ret + s" (pos=${pos.x.round},${pos.y.round},${pos.z.round})(dead=$dead)"
-    return ret
-  }
+abstract class Entity(_world:World, _pos: Vec3) extends WorldEntity(_world, _pos) {
 
   case class Anim(var speed: Double, var frame: Array[Int])
 
@@ -38,9 +15,6 @@ abstract class Entity(world:World, var pos: Vec3) extends Serializable {
   var texture: Option[Int] = None
 
   var friction: Double = 0
-  var health: Double = 50
-  var dead: Boolean = false
-  var die_at: Double = 0
   var step_height: Double = 0
   var bounciness: Double = 0
   var gravity: Double = 1
@@ -56,17 +30,6 @@ abstract class Entity(world:World, var pos: Vec3) extends Serializable {
   var is_enemy = false
   var is_friend = false
 
-  def get_distance_to_player(): Double = {
-    vec3_dist(this.pos, this.world.player.pos)
-  }
-
-  def get_angle_to_player(): Double = {
-    vec3_2d_angle(this.pos, this.world.player.pos)
-  }
-
-  def line_of_sight_to_player(): Boolean = {
-    world.map_line_of_sight(this.pos, this.world.player.pos)
-  }
 
   def update() : Unit
 
@@ -172,12 +135,12 @@ abstract class Entity(world:World, var pos: Vec3) extends Serializable {
     }
     // Check if there's no block beneath this point. We want the AI to keep
     // off of ledges.
-    if (on_ground && keep_off_ledges && !world.map_block_beneath(p, this.size)) {
+    if (on_ground && keep_off_ledges && !world.map.block_beneath(p, this.size)) {
       return true
     }
 
     // Do the normal collision check with the whole box
-    val collided_with_box = world.map_block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
+    val collided_with_box = world.map.block_at_box(vec3_sub(p, this.size), vec3_add(p, this.size))
     return collided_with_box
   }
 
@@ -209,7 +172,7 @@ abstract class Entity(world:World, var pos: Vec3) extends Serializable {
         mix = 1 - mix
       }
 
-      world.render_draw(pos, yaw, pitch, texture.get, model.get.frames(frame_cur), model.get.frames(frame_next), mix, model.get.num_verts)
+      world.display.render.draw(pos, yaw, pitch, texture.get, model.get.frames(frame_cur), model.get.frames(frame_next), mix, model.get.num_verts)
     } else {
       throw new Exception(s"Model not defined ($this)")
     }
@@ -235,53 +198,11 @@ abstract class Entity(world:World, var pos: Vec3) extends Serializable {
   }
 
   def play_sound(sound: AudioBuffer) = {
-    val distance_to_camera = world.get_distance_to_camera(this.pos)
-    val angle_to_camera = world.get_angle_to_camera(this.pos)
-    val volume = clamp(scale(distance_to_camera, 64, 1200, 1, 0), 0, 1)
-    val pan = Math.sin(angle_to_camera) * -1
-    world.audio_play(sound, volume, false, pan)
+    world.play_sound(sound, this.pos)
   }
 
   def kill() = {
     dead = true
-  }
-
-
-  //serializable interface
-  def writeState(outputState:State) = {
-
-    //
-    outputState.writeTag(this.tag)
-
-    //
-    outputState.writeVec3(this.pos)
-    outputState.writeVec3(this.accel)
-    outputState.writeVec3(this.veloc)
-    outputState.writeVec3(this.size)
-
-    outputState.writeFloat(this.yaw)
-    outputState.writeFloat(this.pitch)
-
-    outputState.writeBool(this.dead)
-
-    outputState.writeFloat(this.health)
-    outputState.writeFloat(this.die_at)
-  }
-
-  def readState(inputState:State) = {
-
-    inputState.readVec3(this.pos)
-    inputState.readVec3(this.accel)
-    inputState.readVec3(this.veloc)
-    inputState.readVec3(this.size)
-
-    this.yaw = inputState.readFloat()
-    this.pitch = inputState.readFloat()
-
-    this.dead = inputState.readBool()
-
-    this.health = inputState.readFloat()
-    this.die_at = inputState.readFloat()
   }
 
 }

@@ -8,7 +8,7 @@ class EntityPickupHealth(world:World, apos:Vec3) extends EntityPickup(world, apo
   this.texture = Some(23)
 
   def pickup() = {
-    world.audio_play(sfx_pickup)
+    world.play_sound(sfx_pickup)
     world.player.health += 25
     this.kill()
   }

@@ -1,11 +1,11 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils.{Vec3, vec3_2d_angle, vec3_dist}
+import com.publicscript.qucore.MathUtils._
 import com.publicscript.qucore.Resources.map_data
 import org.scalajs.dom.AudioBuffer
 
 import scala.collection.mutable.ArrayBuffer
-import scala.scalajs.js.timers.{SetTimeoutHandle, clearTimeout, setTimeout}
+import scala.scalajs.js.timers.{SetTimeoutHandle}
 import scala.util.Random
 
 
@@ -20,85 +20,20 @@ class GameWorld extends World {
   var map_index : Int = _
 
   val audio = new Audio()
-  val render = new Render(Document.c)
-  var model = new Model(render)
+  val display = new Display()
+  var model = new Model(display.render)
 
-  def show_title_message(msg: String, sub: String = "") = {
 
-    if ( msg == "" && sub == "" ) {
-      Document.ts.style.display = "none"
+  def play_sound(sound: AudioBuffer, pos:Vec3 = null) = {
+    if ( pos != null) {
+      val distance_to_camera = display.render.get_distance_to_camera(pos)
+      val angle_to_camera = display.render.get_angle_to_camera(pos)
+      val volume = clamp(scale(distance_to_camera, 64, 1200, 1, 0), 0, 1)
+      val pan = Math.sin(angle_to_camera) * -1
+      audio.play(sound, volume, false, pan)
     } else {
-      Document.ts.innerHTML = "<h1>" + msg + "</h1>" + sub
-      Document.ts.style.display = "block"
+      audio.play(sound)
     }
-  }
-  def show_game_message(text: String) = {
-    Document.msg.textContent = text
-    Document.msg.style.display = "block"
-    clearTimeout(message_timeout)
-    message_timeout = setTimeout(2000) { Document.msg.style.display = "none" }
-  }
-
-  def show_health(health: String) = {
-    Document.h.textContent = health
-  }
-
-  def show_ammo(ammo: String) = {
-    Document.a.textContent = ammo
-  }
-
-  def mouse_sensitivity(): Double = {
-    Document.m.value.toDouble
-  }
-
-  def mouse_inverted() : Boolean = {
-    Document.mi.checked
-  }
-
-  def audio_play(buffer: AudioBuffer, volume: Double = 1, loop: Boolean = false, pan: Double = 0) = {
-    audio.play(buffer, volume, loop, pan)
-  }
-  def render_draw(pos: Vec3, yaw: Double, pitch: Double, texture: Int, offset1: Int, offset2: Int, mix: Int, num_verts: Int) = {
-    render.draw(pos, yaw, pitch, texture, offset1, offset2, mix, num_verts)
-  }
-  def render_light(pos: Vec3, intensity: Double, r: Double, g: Double, b: Double) = {
-    render.push_light(pos, intensity, r, g, b)
-  }
-
-  def get_distance_to_camera(pos: Vec3) : Double = {
-    vec3_dist(pos, render.camera)
-  }
-  def get_angle_to_camera(pos:Vec3) : Double = {
-    vec3_2d_angle(pos, render.camera) - render.camera_yaw
-  }
-
-  def camera(): Vec3 = {
-    render.camera
-  }
-
-  def camera_pitch():Double = {
-    render.camera_pitch
-  }
-  def camera_yaw():Double = {
-    render.camera_yaw
-  }
-  def camera_pitch_=(pitch: Double) = {
-    render.camera_pitch = pitch
-  }
-  def camera_yaw_=(yaw: Double) = {
-    render.camera_yaw = yaw
-  }
-
-
-  def map_line_of_sight(a:Vec3, b:Vec3) : Boolean = {
-    map.line_of_sight(a,b)
-  }
-  def map_block_at_box(box_start: Vec3, box_end: Vec3) : Boolean = {
-    map.block_at_box(box_start, box_end)
-  }
-
-  def map_block_beneath(pos:Vec3, size:Vec3) : Boolean = {
-    map.block_beneath(pos, size)
   }
 
 
@@ -164,6 +99,12 @@ class GameWorld extends World {
     randomObj.nextDouble()
   }
 
+  var seq:Int = 0
+  def nextSeq():Int = {
+    seq = seq + 1
+    seq
+  }
+
   //
   // World interface below
   //
@@ -184,7 +125,7 @@ class GameWorld extends World {
 
     randomInit()
 
-    show_title_message("")
+    display.set_title_message("")
     entities.clear()
     map_index=level
     map.init(map_data(map_index))
@@ -212,10 +153,6 @@ class GameWorld extends World {
         e.needs_key = false
       }
     }
-  }
-
-  def get_line_of_sight(a:Vec3, b:Vec3) : Boolean = {
-    map.line_of_sight(a,b)
   }
 
   val log = new GameLog()
