@@ -12,4 +12,3 @@ cat \
 
 cp -v /tmp/l qucore/js/target/scala-2.13/classes/build/levels
 
-
