@@ -2,75 +2,39 @@ package com.publicscript.qucore
 
 import com.publicscript.qucore.MathUtils.{vec3, vec3_rotate_y}
 import com.publicscript.qucore.Model.model_load_container_async
-import com.publicscript.qucore.Resources.{init_models, init_sfx, model_q}
-import com.publicscript.qucore.TTT.ttt
-import com.publicscript.qucore.Textures.texture_data
+import com.publicscript.qucore.Resources.{init_models, init_sfx, init_textures, model_q}
+
 import org.scalajs.dom.MouseEvent
-
-
 import org.scalajs.dom.window.requestAnimationFrame
-
 
 
 object Game {
 
   def game_load() = {
 
-    // Create textures
-    ttt(texture_data).map(Game.world.display.render.create_texture)
+    Resources.async_init(Game.game_load_complete)
 
-    // Load map & model containers
-    import scala.concurrent.ExecutionContext.Implicits.global
-    println("loading js/target/scala-2.13/classes/build/levels")
-    Game.world.map.load_container_async("js/target/scala-2.13/classes/build/levels").onComplete {
-      result => {
-        println("loaded Resources.map_data")
-        Resources.map_data = result.get
-        game_load_part2()
-      }
-    }
+  }
 
-    println("loading js/target/scala-2.13/classes/build/models")
-    model_load_container_async("js/target/scala-2.13/classes/build/models").onComplete {
-      result => {
-        println("loaded Resources.model_data")
-        Resources.model_geometry = result.get
-        init_models()
-        game_load_part2()
-      }
+  def game_load_complete() = {
+
+    Game.world.display.render.submit_buffer()
+
+    var looper = new FrameLooper(intro_frame)
+
+    Display.f.onclick = (e: MouseEvent) => Display.g.requestFullscreen()
+    Display.g.onclick = (e: MouseEvent) => {
+      Display.g.onclick = (e: MouseEvent) => Display.c.requestPointerLock()
+
+      game_init()
+
+      looper.term()
+      looper = new FrameLooper(game_run)
     }
 
   }
-  def game_load_part2() = {
 
-    if (Resources.map_data != null && Resources.model_geometry != null ) {
 
-      println("game_load_part2")
-
-      init_models()
-      Game.world.display.render.submit_buffer()
-
-      println("requestAnimationFrame(intro_frame)")
-
-      var looper = new FrameLooper(intro_frame)
-      //requestAnimationFrame(intro_frame)
-
-      println("set up handlers")
-
-      Display.f.onclick = (e: MouseEvent) => Display.g.requestFullscreen()
-      Display.g.onclick = (e: MouseEvent) => {
-        Display.g.onclick = (e: MouseEvent) => Display.c.requestPointerLock()
-
-        init_sfx()
-        game_init()
-
-        looper.term()
-        looper = new FrameLooper(game_run)
-      }
-
-    }
-
-  }
 
   type FrameFunc = Double => Unit
 
@@ -130,7 +94,7 @@ object Game {
 
     world.clock.set_time(time_now)
 
- //   world.syncState()
+    world.syncState()
 
     world.display.render.prepare_frame(0.1, 0.2, 0.5)
 

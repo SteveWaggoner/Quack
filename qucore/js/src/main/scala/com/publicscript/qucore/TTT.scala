@@ -2,12 +2,12 @@ package com.publicscript.qucore
 
 import org.scalajs.dom.{HTMLCanvasElement, document}
 
-import scala.scalajs.js.{Any, Array}
+//import scala.scalajs.js.{Any, Array}
 
 object TTT {
 
   def rgba_from_2byte(c: Int):String = {
-    "rgba(" + Array(
+    "rgba(" + scala.scalajs.js.Array(
       ((c >> 12) & 15) * 17,
       ((c >> 8) & 15) * 17,
       ((c >> 4) & 15) * 17,
@@ -101,7 +101,7 @@ object TTT {
         val text = d(i + 5).asInstanceOf[String]
 
         c.fillStyle = rgba_from_2byte(color)
-        c.font = size + "px " + Array("sans-", "")(font) + "serif"
+        c.font = size + "px " + scala.scalajs.js.Array("sans-", "")(font) + "serif"
         c.fillText(text, x, y)
         return 6
       }

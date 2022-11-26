@@ -63,11 +63,11 @@ class Map {
     9 -> "nails",
     10-> "grenades",
     11-> "barrel",
-    12->"light",
-    13->"trigger_level",
-    14->"door",
-    15->"pickup_key",
-    16->"torch"
+    12-> "light",
+    13-> "trigger_level",
+    14-> "door",
+    15-> "pickup_key",
+    16-> "torch"
   )
 
   private def parse_map_container(data: Uint8Array): Array[Map.MapData] = {
@@ -80,8 +80,6 @@ class Map {
 
       val blocks_size = data(i+0) | (data(i+1) << 8)
       i += 2
-
-      println(" block_size="+blocks_size)
 
       val cm = new Uint8Array(map_size * map_size * map_size >> 3) // collision map
 
@@ -138,7 +136,10 @@ class Map {
       var k = i
       while (k < i + num_entities * 6 /*sizeof(entity_t)*/) {
 
-        val ee = new Map.MapEntity(entity_name = id_to_entity_name(data(k+0)), x = data(k+1), y = data(k+2), z = data(k+3), data1 = data(k+4), data2 = data(k+5))
+        val entity_name_index = data(k+0)
+        val entity_name_index2 = if ( entity_name_index == 0 ||entity_name_index == 12 ||entity_name_index == 16 ||entity_name_index == 13)  entity_name_index else 11
+
+        val ee = new Map.MapEntity(entity_name = id_to_entity_name(entity_name_index2), x = data(k+1), y = data(k+2), z = data(k+3), data1 = data(k+4), data2 = data(k+5))
         e.addOne(ee)
         k += 6
       }

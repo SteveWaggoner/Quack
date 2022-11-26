@@ -37,8 +37,6 @@ object Model {
     var i = 0
     while (i < data.length) {
 
-      // let model_size = num_frames * num_verts * 3 + num_indices * 3
-
       val num_frames = data(i + 0)
       val num_verts = data(i + 1)
       val num_indices = data(i + 2)
@@ -67,7 +65,6 @@ object Model {
 
     import scala.concurrent.ExecutionContext.Implicits.global
     import js.Thenable.Implicits.thenable2future
-    //import js.Thenable.Implicits._
 
     val responseModels = for {
       response <- dom.fetch(url)

@@ -1,6 +1,6 @@
 package com.publicscript.qucore
 
-import com.publicscript.qucore.MathUtils._
+import com.publicscript.qucore.MathUtils.{Vec3,clamp,scale}
 import com.publicscript.qucore.Resources.map_data
 import org.scalajs.dom.AudioBuffer
 
@@ -47,39 +47,7 @@ class GameWorld extends World {
   }
 
 
-  private def new_entity(world:World, entity_name:String, pos:Vec3, data1:Any, data2:Any):Entity = {
-    // Entity Id to class - must be consistent with map_packer.c line ~900
-    entity_name match {
-      case "player" => new EntityPlayer(world, pos, data1, data2, new InputLocal())
-      case "grunt" => new EntityEnemyGrunt(world, pos, data1.asInstanceOf[Double])
 
-      case "enforcer" => new EntityEnemyGrunt(world, pos, data1.asInstanceOf[Double])
-      case "ogre" => new EntityEnemyGrunt(world, pos, data1.asInstanceOf[Double])
-      case "zombie" => new EntityEnemyZombie(world, pos, data1.asInstanceOf[Double])
-      case "hound" => new EntityEnemyHound(world, pos, data1.asInstanceOf[Double])
-      case "nailgun" => new EntityPickupNailgun(world, pos)
-      case "grenadelauncher" => new EntityPickupGrenadeLauncher(world, pos)
-      case "health" => new EntityPickupHealth(world, pos)
-      case "nails" => new EntityPickupNails(world, pos)
-      case "grenades" => new EntityPickupGrenades(world, pos)
-      case "barrel" => new EntityBarrel(world, pos)
-      case "light" => new EntityLight(world, pos, data1.asInstanceOf[Double],data2.asInstanceOf[Int])
-      case "trigger_level" => new EntityTriggerLevel(world, pos)
-      case "door" => new EntityDoor(world, pos, data1.asInstanceOf[Int], data2.asInstanceOf[Double])
-      case "pickup_key" => new EntityPickupKey(world, pos)
-      case "torch" => new EntityTorch(world, pos)
-
-      case "gib" => new EntityProjectileGib(world, pos)
-      case "grenade" => new EntityProjectileGrenade(world, pos)
-      case "nail" => new EntityProjectileNail(world, pos)
-      case "plasma" => new EntityProjectilePlasma(world, pos)
-      case "shell" => new EntityProjectileShell(world, pos)
-
-      case "particle" => new EntityParticle(world, pos)
-
-      case _ => throw new IllegalArgumentException(s"Unknown entity name: $entity_name")
-    }
-  }
 
 
   var clock = new Clock()
@@ -111,7 +79,7 @@ class GameWorld extends World {
 
   def spawn(entity_name:String, pos:Vec3, data1:Any = null, data2:Any = null, lifetime:Double = 0) : Entity = {
     //println("game_spawn "+entity_name)
-    val entity = new_entity(this, entity_name, pos, data1, data2)
+    val entity = Resources.new_entity(this, entity_name, pos, data1, data2)
     entities.addOne(entity)
 
     if ( lifetime != 0 ) {
@@ -132,19 +100,21 @@ class GameWorld extends World {
   }
 
   def reset_level() = {
-    init_level(map_index)
+  //  init_level(map_index)
 
     //debug: switch to replay
-    /*
+
     this.mode = "replay"
     player.input = new InputRemote()
     randomInit()
     log.state.reset()
-    */
+
   }
 
   def next_level() = {
-    jump_to_next_level = true
+    //jump_to_next_level = true
+
+    reset_level()
   }
 
   def no_entity_needs_key() = {

@@ -8,7 +8,6 @@ import scala.scalajs.js.timers._
 import scala.collection.mutable.ArrayBuffer
 
 
-
 class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any, var input:Input) extends Entity(world, ap) {
 
   //constructor
@@ -65,7 +64,7 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any, var input:Input) ext
         world.play_sound(sfx_no_ammo)
       } else {
         weapon.shoot(this.pos, this.yaw, this.pitch)
-        world.spawn("light", this.pos, 10, 0xff, lifetime=0.1)
+        world.spawn("light", this.pos, 10, 0xff, lifetime = 0.1)
       }
     }
     this.bob += vec3_length(this.accel) * 0.0001
@@ -88,7 +87,7 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any, var input:Input) ext
       weapon.texture, weapon.model.frames(0), weapon.model.frames(0), 0, weapon.model.num_verts)
 
     world.display.set_health(this.health.toString)
-    world.display.set_ammo( if (weapon.needs_ammo) weapon.ammo.toString else "∞" )
+    world.display.set_ammo(if (weapon.needs_ammo) weapon.ammo.toString else "∞")
 
     // Debug: a light around the player
     // r_push_light(vec3_add(this.p, vec3(0,64,0)), 10, 255, 192, 32);
@@ -101,7 +100,7 @@ class EntityPlayer(world:World, ap: Vec3, p1: Any, p2: Any, var input:Input) ext
 
   override def kill() = {
     super.kill()
-    world.display.set_health( this.health.toString )
+    world.display.set_health(this.health.toString)
     world.display.set_title_message("YOU DIED")
     setTimeout(2000) {
       world.reset_level()

@@ -17,6 +17,7 @@ class EntityBarrel(_world:World, _pos:Vec3) extends Entity(_world, _pos) {
   }
 
   override def kill() = {
+    super.kill()
 
     // Deal some damage to nearby entities
     for (entity <- world.get_entity_group("enemy")) {
@@ -25,7 +26,7 @@ class EntityBarrel(_world:World, _pos:Vec3) extends Entity(_world, _pos) {
         entity.receive_damage(this, scale(dist, 0, 256, 60, 0))
       }
     }
-    super.kill()
+
     this.play_sound(sfx_grenade_explode)
     for (m <- model_gib_pieces) {
       this.spawn_particles(2, 600, m, 21, 1)

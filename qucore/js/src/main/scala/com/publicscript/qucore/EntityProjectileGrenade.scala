@@ -5,12 +5,11 @@ import com.publicscript.qucore.Resources.{model_explosion,model_grenade,sfx_gren
 
 class EntityProjectileGrenade(world:World, apos:Vec3) extends Entity(world, apos) {
 
-
-    this.texture = Some(8)
-    this.model = Some(model_grenade)
-    this.die_at = world.time + 2
-    this.bounciness = 0.5
-    val damage = 120
+  this.texture = Some(8)
+  this.model = Some(model_grenade)
+  this.die_at = world.time + 2
+  this.bounciness = 0.5
+  val damage = 120
 
 
   override def update() = {
@@ -20,14 +19,14 @@ class EntityProjectileGrenade(world:World, apos:Vec3) extends Entity(world, apos
     this.friction = if (this.on_ground) 5 else 0.5
   }
 
-  override def did_collide(axis: Int):Unit = {
+  override def did_collide(axis: Int): Unit = {
     if (axis != 1 || this.veloc.y < -128) {
       this.yaw += world.random()
       this.play_sound(sfx_grenade_bounce)
     }
   }
 
-  override def did_collide_with_entity(other: Entity):Unit = {
+  override def did_collide_with_entity(other: Entity): Unit = {
     this.kill()
   }
 
@@ -42,7 +41,7 @@ class EntityProjectileGrenade(world:World, apos:Vec3) extends Entity(world, apos
     super.kill()
     this.play_sound(sfx_grenade_explode)
     this.spawn_particles(20, 800, model_explosion, 8, 1)
-    world.spawn("light", vec3_add(this.pos, vec3(0, 16, 0)), 250, 0x08f, lifetime=0.2)
+    world.spawn("light", vec3_add(this.pos, vec3(0, 16, 0)), 250, 0x08f, lifetime = 0.2)
   }
 
 }
