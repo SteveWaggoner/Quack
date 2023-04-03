@@ -1,17 +1,16 @@
 from flask import Blueprint, render_template
 from flask_sock import Sock
 
-
-def register_page(app):
-    app.register_blueprint(echo, url_prefix='/echo')
-
-    global sock
-    sock = Sock(app)
-
+sock = Sock()
 echo = Blueprint('echo', __name__,
     template_folder='templates',
     static_folder='static', 
     static_url_path='assets')
+
+def register_page(app):
+    app.register_blueprint(echo, url_prefix='/echo')
+    sock.init_app(app)
+
 
 @echo.route('/')
 def index():
@@ -19,7 +18,7 @@ def index():
 
 
 
-@sock.route('/ws')
+@sock.route('/ws',bp=echo)
 def echo(sock):
     while True:
         data = sock.receive()
