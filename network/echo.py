@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+from flask_sock import Sock
 
 
 def register_page(app):
